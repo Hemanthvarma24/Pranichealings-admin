@@ -24,8 +24,8 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-import backgroundImage from "@/app/assets/bgside.jpg";
-import doctor from "@/app/assets/doctors/doctor-thumb-02.jpg";
+import backgroundImage from "@/app/assets/bgside.png";
+import doctor from "@/app/assets/doctors/doctor-thumb-02.png";
 
 type SubmenuItem = {
   label: string;

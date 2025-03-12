@@ -18,7 +18,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import Logo from "@/app/assets/logo.png"
-import User from "@/app/assets/doctors/doctor-thumb-02.jpg"
+import User from "@/app/assets/doctors/doctor-thumb-02.png"
 
 export function Header({ }) {
 
@@ -130,7 +130,7 @@ export function Header({ }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/login" className="w-full">
+                  <Link href="/" className="w-full">
                     Logout
                   </Link>
                 </DropdownMenuItem>
