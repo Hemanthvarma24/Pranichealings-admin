@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "@/app/assets/logo.png";
+import Logo from "@/app/assets/praniclogo.png";
 
 export function LoginForm() {
   const [email, setEmail] = useState<string>("");
@@ -25,8 +25,9 @@ export function LoginForm() {
 
     let userRole = "";
 
-  
-    for (const role of Object.keys(credentials) as Array<keyof typeof credentials>) {
+    for (const role of Object.keys(credentials) as Array<
+      keyof typeof credentials
+    >) {
       const user = credentials[role];
       if (email === user.email && password === user.password) {
         userRole = role;
@@ -42,12 +43,12 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-6 p-12 bg-white rounded-lg shadow-md">
-      <div className="text-left">
+    <div className="space-y-6 p-12 bg-white rounded-lg shadow-lg">
+      <div className="flex flex-col items-center">
         <Link href="/dashboard" passHref>
           <Image
             src={Logo}
-            alt="Doccure Logo"
+            alt="pranic healing Logo"
             width={180}
             height={40}
             priority
@@ -55,7 +56,7 @@ export function LoginForm() {
             unoptimized
           />
         </Link>
-        <h1 className="text-3xl font-bold">Login</h1>
+        <h1 className="text-2xl font-semibold text-center">Login</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,22 +64,24 @@ export function LoginForm() {
           <input
             id="email"
             type="email"
-            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            placeholder="Enter your email"
+            className="w-full p-3 border rounded-lg"
+            style={{ borderColor: "#4ead91" }}
           />
         </div>
         <div className="space-y-2">
           <input
             id="password"
             type="password"
-            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full p-3 border border-gray-300 rounded-lg"
+            placeholder="Enter your password"
+            className="w-full p-3 border rounded-lg"
+            style={{ borderColor: "#4ead91" }}
           />
         </div>
         <div className="text-left">
@@ -98,13 +101,15 @@ export function LoginForm() {
         </div>
         <button
           type="submit"
-          className="w-full p-3 text-white rounded-lg"
-          style={{ backgroundColor: "#09e6ab" }}
+          className="w-full p-3 rounded-lg font-semibold text-white"
+          style={{ backgroundColor: "#4ead91" }}
           onMouseOver={(e) => {
-            (e.target as HTMLElement).style.backgroundColor = "#0f82fc";
+            (e.target as HTMLElement).style.backgroundColor = "#d2fae5";
+            (e.target as HTMLElement).style.color = "black";
           }}
           onMouseOut={(e) => {
-            (e.target as HTMLElement).style.backgroundColor = "#09e6ab";
+            (e.target as HTMLElement).style.backgroundColor = "#4ead91";
+            (e.target as HTMLElement).style.color = "white";
           }}
         >
           Login

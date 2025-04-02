@@ -2,14 +2,11 @@
 
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function RoleWrapper() {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "admin"; // Fixed incorrect OR condition
 
-  return <Sidebar role={role} />;
+  return <Sidebar />;
 }
 
 export default function ReportsPage() {

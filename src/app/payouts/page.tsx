@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Search, LinkIcon, Wallet, PiggyBank, ArrowDownToLine } from 'lucide-react';
-import { useSearchParams } from "next/navigation";
 
 interface PayoutTransaction {
   id: string;
@@ -113,10 +112,8 @@ const StatsCards: React.FC = () => (
 
 // Client-side only component using useSearchParams
 function RoleWrapper() {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "admin";
   
-  return <Sidebar role={role}/>;
+  return <Sidebar/>;
 }
 
 // Fallback component to show while loading

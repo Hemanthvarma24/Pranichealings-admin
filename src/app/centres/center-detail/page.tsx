@@ -41,7 +41,7 @@ function SidebarWrapper() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "admin" || "healers" || "coordinators";
   
-  return <Sidebar role={role}/>;
+  return <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />;
 }
 
 // Wrap the component that uses useSearchParams in Suspense

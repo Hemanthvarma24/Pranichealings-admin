@@ -5,8 +5,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Doccure",
-  description: "Healthcare Platform",
+  title: "Pranic Healing",
+  description: "Pranic Healing for your Mind, Body & Soul",
 }
 
 export default function RootLayout({

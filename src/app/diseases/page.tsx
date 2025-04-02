@@ -55,7 +55,7 @@ function RoleWrapper() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || "admin";
   
-  return <Sidebar role={role}/>;
+  return <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />;
 }
 
 // Fallback component to show while loading

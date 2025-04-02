@@ -1,41 +1,48 @@
-"use client";
+"use client"
 
-import { useState, Suspense } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Search, MapPin, Calendar, Clock, History } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Header } from "@/components/dashboard/header";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { Footer } from "@/components/dashboard/footer";
-import Patient from "@/app/assets/patients/patient.jpg";
-import Patienttwo from "@/app/assets/patients/patient2.jpg";
-import Patientthree from "@/app/assets/patients/patient4.jpg";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { Search, MapPin, Calendar, Clock, History } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Header } from "@/components/dashboard/header"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import { Footer } from "@/components/dashboard/footer"
+import { useSearchParams } from "next/navigation"
 
-type Appointment = {
-  id: string;
-  name: string;
-  age?: number;
-  gender?: string;
-  bloodType?: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  location: string;
-  lastBooking: string;
-  image: string | { src: string };
-};
+type Center = {
+  id: string
+  centerName: string
+  appointmentDate: string
+  appointmentTime: string
+  location: string
+  lastBooking: string
+  image: string
+  // Additional fields for edit functionality
+  countryCode?: string
+  phoneNumber?: string
+  email?: string
+  website?: string
+  yearEstablished?: string
+  country?: string
+  state?: string
+  city?: string
+  street?: string
+  nearby?: string
+  pincode?: string
+  description?: string
+}
 
-const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
+const CenterCard = ({ center }: { center: Center }) => (
   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
     <CardContent className="p-6">
       <div className="flex items-start gap-4">
         <div className="relative h-16 w-16 flex-shrink-0">
           <Image
-            src={typeof appointment.image === "string" ? appointment.image : appointment.image.src}
-            alt={appointment.name}
+            src={center.image || "/placeholder.svg"}
+            alt={center.centerName}
             fill
             className="rounded-lg object-cover"
             unoptimized
@@ -44,84 +51,109 @@ const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-sm text-blue-600 font-medium mb-1">#{appointment.id}</div>
-              <h3 className="font-semibold text-lg">{appointment.name}</h3>
+              <div className="text-sm text-blue-600 font-medium mb-1">#{center.id}</div>
+              <h3 className="font-semibold text-lg">{center.centerName}</h3>
             </div>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="h-4 w-4" />
-              <span>{appointment.appointmentDate}</span>
+              <span>{center.appointmentDate}</span>
               <Clock className="h-4 w-4 ml-2" />
-              <span>{appointment.appointmentTime}</span>
+              <span>{center.appointmentTime}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <MapPin className="h-4 w-4" />
-              <span>{appointment.location}</span>
+              <span>{center.location}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <History className="h-4 w-4" />
-              <span>Last Booking: {appointment.lastBooking}</span>
+              <span>Last Booking: {center.lastBooking}</span>
             </div>
           </div>
           <div className="mt-4 flex gap-4">
             <Link href="/centres/center-detail">
-              <Button variant="link" className="p-0 h-auto font-medium">View Details</Button>
+              <Button variant="link" className="p-0 h-auto font-medium">
+                View Details
+              </Button>
             </Link>
-            <Link href="/centres/add-center">
-              <Button variant="link" className="p-0 h-auto font-medium">Edit</Button>
+            <Link href={`/centres/add-center?edit=true&id=${center.id}`}>
+              <Button variant="link" className="p-0 h-auto font-medium">
+                Edit
+              </Button>
             </Link>
           </div>
         </div>
       </div>
     </CardContent>
   </Card>
-);
+)
 
 const RoleWrapper = () => {
-  const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "admin";
-  return <Sidebar role={role} />;
-};
+  const searchParams = useSearchParams()
+  const role = searchParams.get("role") || "admin"
+  return <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />
+}
 
-export default function AppointmentsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function CentersPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [centers, setCenters] = useState<Center[]>([])
 
-  const appointments: Appointment[] = [
-    {
-      id: "Apt0005",
-      name: "Anderea Kearns",
-      appointmentDate: "26 Sep 2024",
-      appointmentTime: "10:20 AM",
-      location: "San Francisco, USA",
-      lastBooking: "11 Feb 2024",
-      image: Patient,
-    },
-    {
-      id: "Apt0006",
-      name: "Darrell Tan",
-      appointmentDate: "25 Aug 2024",
-      appointmentTime: "10:45 AM",
-      location: "San Antonio, USA",
-      lastBooking: "03 Jan 2024",
-      image: Patienttwo,
-    },
-    {
-      id: "Apt004",
-      name: "Tan",
-      appointmentDate: "27 Aug 2024",
-      appointmentTime: "10:45 AM",
-      location: "San Antonio, USA",
-      lastBooking: "03 Jan 2024",
-      image: Patientthree,
-    },
-  ];
+  // Load centers from localStorage on component mount
+  useEffect(() => {
+    // Default centers - moved inside the useEffect to avoid recreating on every render
+    const defaultCenters: Center[] = [
+      {
+        id: "CTR0005",
+        centerName: "Apollo Medical Center",
+        appointmentDate: "26 Sep 2024",
+        appointmentTime: "10:20 AM",
+        location: "Bangalore, Karnataka",
+        lastBooking: "11 Feb 2024",
+        image: "/placeholder.svg?height=200&width=200",
+        country: "United States",
+        state: "California",
+        city: "San Francisco",
+      },
+      {
+        id: "CTR0006",
+        centerName: "Fortis Healthcare",
+        appointmentDate: "25 Aug 2024",
+        appointmentTime: "10:45 AM",
+        location: "Mumbai, Maharashtra",
+        lastBooking: "03 Jan 2024",
+        image: "/placeholder.svg?height=200&width=200",
+        country: "United Kingdom",
+        state: "England",
+        city: "London",
+      },
+      {
+        id: "CTR0007",
+        centerName: "Max Super Speciality Hospital",
+        appointmentDate: "27 Aug 2024",
+        appointmentTime: "10:45 AM",
+        location: "Delhi, Delhi",
+        lastBooking: "03 Jan 2024",
+        image: "/placeholder.svg?height=200&width=200",
+        country: "Canada",
+        state: "Ontario",
+        city: "Toronto",
+      },
+    ]
 
-  const filteredAppointments = appointments.filter(
-    (appointment) =>
-      appointment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      appointment.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    const storedCenters = localStorage.getItem("medicalCenters")
+    if (storedCenters) {
+      setCenters([...defaultCenters, ...JSON.parse(storedCenters)])
+    } else {
+      setCenters(defaultCenters)
+    }
+  }, []) // Empty dependency array since defaultCenters is now inside the effect
+
+  const filteredCenters = centers.filter(
+    (center) =>
+      center.centerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      center.location.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -145,23 +177,24 @@ export default function AppointmentsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               </div>
               <Link href="/centres/add-center">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Add centers</Button>
+                <Button className="bg-[#4ead91] hover:bg-[#3c9a7f] text-white">Add Center</Button>
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAppointments.map((appointment) => (
-                <AppointmentCard key={appointment.id} appointment={appointment} />
+              {filteredCenters.map((center) => (
+                <CenterCard key={center.id} center={center} />
               ))}
             </div>
 
-            {filteredAppointments.length === 0 && (
-              <p className="text-center text-gray-500 mt-8">No appointments found matching your search.</p>
+            {filteredCenters.length === 0 && (
+              <p className="text-center text-gray-500 mt-8">No centers found matching your search.</p>
             )}
           </div>
         </main>
       </div>
       <Footer />
     </div>
-  );
+  )
 }
+

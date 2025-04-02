@@ -1,16 +1,10 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@radix-ui/react-accordion";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import type React from "react"
+import { useState, useEffect, useMemo } from "react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import {
   LayoutDashboard,
   ClipboardList,
@@ -22,209 +16,362 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-
-import backgroundImage from "@/app/assets/bgside.png";
-import doctor from "@/app/assets/doctors/doctor-thumb-02.png";
+  LogOut,
+} from "lucide-react"
+import user from "@/app/assets/patients/patient2.jpg"
+import bg from "@/app/assets/bgside.png"
 
 type SubmenuItem = {
-  label: string;
-  href: string;
-};
+  label: string
+  href: string
+}
 
 type MenuItem = {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; 
-  label: string;
-  href?: string;
-  submenu?: SubmenuItem[];
-};
+  icon: React.ElementType
+  label: string
+  href?: string
+  submenu?: SubmenuItem[]
+}
 
-export function Sidebar({ role }: { role: string }) {
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
+type UserRole = "admin" | "coordinators" | "healers"
 
-  const menuItems: MenuItem[] = [
+interface SidebarProps {
+  defaultRole?: UserRole;
+}
+
+export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
+  const [openMenus, setOpenMenus] = useState<string[]>([])
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [currentRole, setCurrentRole] = useState<UserRole>(defaultRole)
+
+  // Get role from URL or localStorage on component mount
+  useEffect(() => {
+    const roleFromUrl = searchParams.get("role") as UserRole | null
+    const roleFromStorage = localStorage.getItem("userRole") as UserRole | null
+
+    // Prioritize URL parameter, then localStorage
+    const role = roleFromUrl || roleFromStorage || defaultRole
+
+    // Validate role is one of the allowed values
+    if (["admin", "coordinators", "healers"].includes(role)) {
+      setCurrentRole(role as UserRole)
+      
+      // Store current role in localStorage if it came from URL
+      if (roleFromUrl && roleFromUrl !== roleFromStorage) {
+        localStorage.setItem("userRole", role)
+      }
+    } else {
+      setCurrentRole(defaultRole) // Default fallback
+    }
+  }, [searchParams, defaultRole])
+
+  // Define all possible menu items without role query parameters
+  const allMenuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     {
       icon: ClipboardList,
       label: "Diseases",
-      href: `/diseases?role=${role}`,
+      href: "/diseases",
       submenu: [
-        { label: "Category", href: `/diseases/category?role=${role}` },
-        { label: "Subcategory", href: `/diseases/subcategory?role=${role}` },
+        { label: "Category", href: "/diseases/category" },
+        { label: "Treatments", href: "/diseases/treatments" },
       ],
     },
-    { icon: Calendar, label: "Centres", href: `/centres?role=${role}` },
+    { icon: Calendar, label: "Centres", href: "/centres" },
     {
       icon: Users,
       label: "User Entities",
       href: "/user-entities",
       submenu: [
-        { label: "Coordinators", href: `/user-entities/coordinators?role=${role}` },
-        { label: "Healers", href: `/user-entities/healers?role=${role}` },
-        { label: "Patients", href: `/user-entities/patients?role=${role}` },
+        { label: "Coordinator", href: "/user-entities/coordinator" },
+        { label: "Healers", href: "/user-entities/healers" },
+        { label: "Patients", href: "/user-entities/patients" },
       ],
     },
-    { icon: Stethoscope, label: "Healings", href: `/healings?role=${role}` },
-    { icon: Wallet, label: "Payouts", href: `/payouts?role=${role}` },
-    { icon: Receipt, label: "Reports", href: `/reports?role=${role}` },
+    { icon: Stethoscope, label: "Healings", href: "/healings" },
+    { icon: Wallet, label: "Payouts", href: "/payouts" },
+    { icon: Receipt, label: "Reports", href: "/reports" },
     {
       icon: Settings,
       label: "Settings",
-      href: `/settings?role=${role}`,
-      submenu: [{ label: "Info", href: `/settings/info?role=${role}` }],
+      href: "/settings",
+      submenu: [{ label: "Info", href: "/settings/info" }],
     },
-  ];
+  ]
 
-  const roleBasedAccess: { [key: string]: { menu: string; submenu?: string[] }[] } = {
-    admin: menuItems.map((item) => ({
-      menu: item.label,
-      submenu: item.submenu?.map((sub) => sub.label),
-    })),
-    coordinators: [
-      { menu: "Dashboard" },
-      {
-        menu: "User Entities",
-        submenu: ["Healers", "Patients"],
-      },
-      { menu: "Healings" },
-      { menu: "Payouts" },
-      { menu: "Reports" },
-      {
-        menu: "Settings",
-        submenu: ["Info"],
-      },
-    ],
-    healers: [
-      { menu: "Dashboard" },
-      { menu: "Healings" },
-      { menu: "Payouts" },
-      { menu: "Reports" },
-      {
-        menu: "Settings",
-        submenu: ["Info"],
-      },
-    ],
-  };
+  // Define role-based access permissions
+  const roleBasedAccess: Record<UserRole, string[]> = {
+    admin: ["Dashboard", "Diseases", "Centres", "User Entities", "Healings", "Payouts", "Reports", "Settings"],
+    coordinators: ["Dashboard", "Healings", "Payouts", "Reports", "Settings"],
+    healers: ["Dashboard", "Healings", "Payouts", "Reports", "Settings"],
+  }
 
-  const accessibleMenuItems = menuItems.filter((item) => {
-    const roleAccess = roleBasedAccess[role]?.find(
-      (access) => access.menu === item.label
-    );
-    
-    if (!roleAccess) return false;
+  // Define role-based submenu access
+  const roleBasedSubmenuAccess: Record<UserRole, Record<string, string[]>> = {
+    admin: {
+      Diseases: ["Category", "Treatments"],
+      "User Entities": ["Coordinator", "Healers", "Patients"],
+      Settings: ["Info"],
+    },
+    coordinators: {
+      Settings: ["Info"],
+    },
+    healers: {
+      Settings: ["Info"],
+    },
+  }
 
-    if (item.submenu) {
-      item = {
-        ...item,
-        submenu: item.submenu.filter((subitem) =>
-          roleAccess.submenu?.includes(subitem.label)
-        ),
-      };
-    }
+  // Generate the accessible menu items based on role
+  const accessibleMenuItems = useMemo(() => {
+    return allMenuItems
+      .filter((item) => roleBasedAccess[currentRole]?.includes(item.label))
+      .map((item) => {
+        // Create a base item with the role parameter added to href
+        const baseItem = {
+          ...item,
+          href: item.href ? `${item.href}?role=${currentRole}` : undefined,
+        }
 
-    return true;
-  });
+        // If item has submenu, filter it based on role permissions
+        if (item.submenu) {
+          const allowedSubmenus = roleBasedSubmenuAccess[currentRole]?.[item.label] || []
 
-  useEffect(() => {
-    const currentMenu = accessibleMenuItems.find((item) => {
-      if (item.href === pathname) return true;
-      if (item.submenu) {
-        return item.submenu.some((subitem) => subitem.href === pathname);
+          // Filter submenus based on current role permissions
+          const filteredSubmenu = item.submenu
+            .filter((subitem) => {
+              if (currentRole === "admin" && item.label === "User Entities") {
+                return true
+              }
+              return allowedSubmenus.includes(subitem.label)
+            })
+            .map((subitem) => ({
+              ...subitem,
+              href: `${subitem.href}?role=${currentRole}`,
+            }))
+
+          return {
+            ...baseItem,
+            submenu: filteredSubmenu.length > 0 ? filteredSubmenu : undefined,
+          }
+        }
+
+        return baseItem
+      })
+  }, [currentRole])
+
+  const isMenuActive = useMemo(() => {
+    return (item: MenuItem): boolean => {
+      // Get base path without query parameters
+      const currentPath = pathname.split("?")[0]
+
+      // For main menu items with direct href
+      if (item.href && !item.submenu) {
+        const baseHref = item.href.split("?")[0]
+        return currentPath === baseHref || currentPath.startsWith(baseHref + "/")
       }
-      return false;
-    });
 
-    if (currentMenu?.submenu) {
-      setOpenMenu(currentMenu.label);
-    } else {
-      setOpenMenu(null);
+      // For items with submenus
+      if (item.submenu) {
+        const baseItemHref = item.href?.split("?")[0]
+
+        // Check if current path matches the main menu path exactly
+        if (baseItemHref && currentPath === baseItemHref) {
+          return true
+        }
+
+        // Check if current path matches any submenu path
+        return item.submenu.some((subitem) => {
+          const baseSubHref = subitem.href.split("?")[0]
+          return currentPath === baseSubHref || currentPath.startsWith(baseSubHref + "/")
+        })
+      }
+
+      return false
     }
-  }, [pathname, accessibleMenuItems]);
+  }, [pathname])
 
-  const handleMainClick = (item: MenuItem) => {
+  // Check if a submenu item is active
+  const isSubmenuActive = useMemo(() => {
+    return (href: string): boolean => {
+      const currentPath = pathname.split("?")[0]
+      const baseHref = href.split("?")[0]
+      return currentPath === baseHref || currentPath.startsWith(baseHref + "/")
+    }
+  }, [pathname])
+
+  // Update open menus based on current pathname
+  useEffect(() => {
+    // Get active menu items based on current path
+    const currentPath = pathname.split("?")[0]
+
+    const currentActiveMenus = accessibleMenuItems
+      .filter((item) => {
+        if (item.submenu) {
+          return item.submenu.some((subitem) => {
+            const baseSubHref = subitem.href.split("?")[0]
+            return currentPath === baseSubHref || currentPath.startsWith(baseSubHref + "/")
+          })
+        }
+        return false
+      })
+      .map((item) => item.label)
+
+    setOpenMenus(currentActiveMenus)
+  }, [pathname, accessibleMenuItems])
+
+  // Toggle menu expansion
+  const handleMenuToggle = (label: string) => {
+    setOpenMenus((prev) => {
+      if (prev.includes(label)) {
+        return prev.filter((item) => item !== label)
+      } else {
+        return [...prev, label]
+      }
+    })
+  }
+
+  // Handle menu item click - toggle menu or navigate
+  const handleMenuClick = (item: MenuItem) => {
     if (item.submenu) {
-      setOpenMenu(openMenu === item.label ? null : item.label);
+      handleMenuToggle(item.label)
     } else if (item.href) {
-      router.push(item.href);
+      router.push(item.href)
     }
-  };
+  }
+
+  // Handle submenu item click with explicit role enforcement
+  const handleSubmenuClick = (href: string, event: React.MouseEvent) => {
+    event.preventDefault()
+    
+    // Ensure the role parameter is included and matches current role
+    const baseUrl = href.split("?")[0]
+    const navigateUrl = `${baseUrl}?role=${currentRole}`
+    
+    router.push(navigateUrl)
+  }
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("userRole")
+    router.push("/")
+  }
+
+  // Handle role switch attempt (block unauthorized switches)
+  useEffect(() => {
+    const roleFromUrl = searchParams.get("role") as UserRole | null
+    const storedRole = localStorage.getItem("userRole") as UserRole | null
+    
+    // If URL role doesn't match stored role and stored role exists, redirect to correct role path
+    if (roleFromUrl && storedRole && roleFromUrl !== storedRole) {
+      const currentPath = pathname.split("?")[0]
+      router.replace(`${currentPath}?role=${storedRole}`)
+    }
+  }, [pathname, searchParams, router])
 
   return (
-    <div className="w-full max-w-[300px] bg-white rounded-[20px] overflow-hidden shadow-[0_2px_28px_0_rgba(0,0,0,0.06)]">
+    <div className="w-full max-w-[300px] bg-white rounded-[20px] overflow-hidden shadow-lg">
       <div className="relative">
-        <div className="h-[150px] relative">
-          <Image
-            src={backgroundImage}
-            alt="Medical background"
-            layout="fill"
-            objectFit="cover"
-            priority
-            unoptimized
-          />
+        <div className="h-[150px] relative ">
+        {/* Background Image */}
+        <Image
+          src={bg}
+          alt="Background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+          className="z-0"
+        />
         </div>
 
         <div className="absolute bottom-[-48px] left-1/2 transform -translate-x-1/2">
-          <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden shadow-md">
+          <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden shadow-md bg-gray-200">
             <Image
-              src={doctor}
-              alt="Doctor profile"
+              src={user}
+              alt="User profile"
               width={96}
               height={96}
               className="object-cover"
-              unoptimized
             />
           </div>
         </div>
       </div>
-      <div className="p-4 pt-20">
-        <Accordion type="multiple" className="space-y-1">
-          {accessibleMenuItems.map((item) => (
-            <AccordionItem key={item.label} value={item.label}>
-              <AccordionTrigger asChild>
+
+      <div className="p-4 pt-16">
+        <div className="text-center mb-4">
+          <h3 className="font-bold text-lg">
+            {currentRole === "admin" ? "Administrator" : currentRole === "coordinators" ? "Coordinator" : "Healer"}
+          </h3>
+          <p className="text-sm text-gray-500">Role: {currentRole}</p>
+        </div>
+
+        <div className="space-y-1">
+          {accessibleMenuItems.map((item) => {
+            const isActive = isMenuActive(item)
+            const isOpen = openMenus.includes(item.label)
+
+            return (
+              <div key={item.label} className="mb-1">
+                {/* Main Menu Item */}
                 <Button
-                  onClick={() => handleMainClick(item)}
+                  onClick={() => handleMenuClick(item)}
                   variant="ghost"
-                  className={`w-full justify-between h-10 px-4 rounded-lg ${
-                    pathname === item.href ? "bg-blue-500 text-white" : ""
+                  className={`w-full justify-between h-10 px-4 rounded-lg transition-colors duration-200 ${
+                    isActive ? "bg-[#4ead91] text-white" : ""
                   } hover:bg-gray-100 hover:text-black`}
                 >
                   <span className="flex items-center">
-                    <item.icon className="mr-3 h-4 w-4 text-gray-500" />
+                    <item.icon className={`mr-3 h-4 w-4 ${isActive ? "text-white" : "text-gray-500"}`} />
                     {item.label}
                   </span>
-                  {item.submenu && (
+                  {item.submenu && item.submenu.length > 0 && (
                     <span className="ml-auto">
-                      {openMenu === item.label ? (
-                        <ChevronUp className="h-4 w-4 text-gray-500" />
+                      {isOpen ? (
+                        <ChevronUp className={`h-4 w-4 ${isActive ? "text-white" : "text-gray-500"}`} />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                        <ChevronDown className={`h-4 w-4 ${isActive ? "text-white" : "text-gray-500"}`} />
                       )}
                     </span>
                   )}
                 </Button>
-              </AccordionTrigger>
-              {item.submenu && (
-                <AccordionContent className="pl-10 space-y-2">
-                  {item.submenu.map((subitem) => (
-                    <Link key={subitem.label} href={subitem.href}>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start h-9 px-3 rounded-lg ${
-                          pathname === subitem.href ? "bg-blue-500 text-white" : ""
-                        } hover:bg-gray-100 hover:text-black`}
-                      >
-                        {subitem.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </AccordionContent>
-              )}
-            </AccordionItem>
-          ))}
-        </Accordion>
+
+                {/* Submenu Items */}
+                {item.submenu && item.submenu.length > 0 && isOpen && (
+                  <div className="pl-10 py-1 space-y-1">
+                    {item.submenu.map((subitem) => {
+                      const isSubActive = isSubmenuActive(subitem.href)
+
+                      return (
+                        <Button
+                          key={subitem.label}
+                          onClick={(e) => handleSubmenuClick(subitem.href, e)}
+                          variant="ghost"
+                          className={`w-full justify-start h-9 px-3 rounded-lg transition-colors duration-200 ${
+                            isSubActive ? "bg-[#4ead91] text-white" : ""
+                          } hover:bg-gray-100 hover:text-black`}
+                        >
+                          {subitem.label}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Logout Button */}
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full justify-start h-10 px-4 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-700 mt-4"
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
       </div>
     </div>
-  );  
+  )
 }

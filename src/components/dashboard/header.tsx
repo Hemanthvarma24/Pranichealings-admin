@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Bell, ShoppingCart, ChevronDown, Menu } from 'lucide-react'
+import { Bell, ChevronDown, Menu } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,13 +17,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import Logo from "@/app/assets/logo.png"
+import Logo from "@/app/assets/praniclogo.png"
 import User from "@/app/assets/doctors/doctor-thumb-02.png"
 
 export function Header({ }) {
-
-
-
   return (
     <header className="sticky top-0 z-50 w-full bg-[#e1e8f0]">
       <div className="container mx-auto px-6">
@@ -41,10 +38,10 @@ export function Header({ }) {
                 <SheetTitle className="flex justify-between items-center">
                   <Image
                     src={Logo}
-                    alt="Doccure"
-                    width={120}
-                    height={40}
-                    className="h-8 w-auto"
+                    alt="pranic healing"
+                    width={180}
+                    height={60}
+                    className="h-12 w-auto"
                     priority
                     unoptimized
                   />
@@ -58,10 +55,10 @@ export function Header({ }) {
             <Link href="/dashboard" className="flex items-center">
               <Image
                 src={Logo}
-                alt="Doccure"
-                width={150}
-                height={50}
-                className="h-10 w-auto"
+                alt="pranic healing"
+                width={200}
+                height={70}
+                className="h-14 w-auto"
                 priority
                 unoptimized
               />
@@ -70,12 +67,6 @@ export function Header({ }) {
 
           {/* Right Side Icons */}
           <div className="hidden lg:flex items-center space-x-6">
-            <Button variant="ghost" size="icon" className="relative hover:bg-transparent">
-              <ShoppingCart className="h-6 w-6" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0D6EFD] text-[11px] font-medium text-white">
-                2
-              </span>
-            </Button>
             <Button variant="ghost" size="icon" className="relative hover:bg-transparent">
               <Bell className="h-6 w-6" />
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0D6EFD] text-[11px] font-medium text-white">
@@ -89,7 +80,7 @@ export function Header({ }) {
                   variant="ghost"
                   className="flex items-center space-x-2 p-1 hover:bg-transparent"
                 >
-                  <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#0D6EFD]">
+                  <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#4ead91]">
                     <Image
                       src={User}
                       alt="Profile"
@@ -104,7 +95,7 @@ export function Header({ }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center space-x-2 p-2 border-b">
-                  <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#0D6EFD]">
+                  <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#4ead91]">
                     <Image
                       src={User}
                       alt="Profile"

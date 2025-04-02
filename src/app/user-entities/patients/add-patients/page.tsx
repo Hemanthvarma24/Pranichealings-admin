@@ -1,16 +1,14 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect, Suspense } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense } from "react"
+import { useState, useEffect } from "react"
+import { useRouter} from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Upload, X } from "lucide-react"
 import * as z from "zod"
-import { useSearchParams } from "next/navigation"
 import Image from "next/image"
-
 import { Header } from "@/components/dashboard/header"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Footer } from "@/components/dashboard/footer"
@@ -22,67 +20,69 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { countries, states, cities } from "@/lib/location-data"
 
-// Center form schema validation
-const centerFormSchema = z.object({
-  centerId: z.string().min(1, { message: "Center ID is required" }),
-  centerName: z.string().min(2, { message: "Center name is required" }),
-  countryCode: z.string().min(1, { message: "Country code is required" }),
-  phoneNumber: z.string().min(10, { message: "Valid phone number is required" }),
+// Coordinator form schema validation
+const coordinatorFormSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, { message: "Name is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  website: z.string().optional(), // Removed URL validation
-  yearEstablished: z.string().regex(/^\d{4}$/, { message: "Please enter a valid year (YYYY)" }),
+  dob: z.string().min(1, { message: "Date of birth is required" }),
+  age: z.coerce.number().min(18, { message: "Age must be at least 18" }),
+  bloodGroup: z.string().min(1, { message: "Blood group is required" }),
   country: z.string().min(2, { message: "Country is required" }),
   state: z.string().min(2, { message: "State is required" }),
   city: z.string().min(2, { message: "City is required" }),
   street: z.string().min(2, { message: "Street address is required" }),
   nearby: z.string().optional(),
   pincode: z.string().min(4, { message: "Valid postal/ZIP code is required" }),
-  description: z.string().optional(),
+  profession: z.string().min(1, { message: "Profession is required" }),
+  test: z.string().optional(),
+  facebookLink: z.string().optional(),
+  twitterLink: z.string().optional(),
+  linkedinLink: z.string().optional(),
+  remarks: z.string().optional(),
+  centers: z.string().min(1, { message: "Please select at least one center" }),
+  status: z.string().min(1, { message: "Status is required" }),
 })
 
-type CenterFormValues = z.infer<typeof centerFormSchema>
+type CoordinatorFormValues = z.infer<typeof coordinatorFormSchema>
 
-// Define type for center data
-interface CenterData extends CenterFormValues {
-  id: string;
-  image: string;
-  location: string;
-  lastBooking: string;
-  appointmentDate: string;
-  appointmentTime: string;
+export default function AddCoordinatorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <AddCoordinatorContent />
+    </Suspense>
+  )
 }
 
-// Create a wrapper component that handles the params
-function AddCenterPageContent() {
+function AddCoordinatorContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "admin"
-  const isEditMode = searchParams.get("edit") === "true"
-  const centerId = searchParams.get("id")
-
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [availableStates, setAvailableStates] = useState<string[]>([])
   const [availableCities, setAvailableCities] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(isEditMode)
-  const [formInitialized, setFormInitialized] = useState(false)
 
-  const form = useForm<CenterFormValues>({
-    resolver: zodResolver(centerFormSchema),
+  const form = useForm<CoordinatorFormValues>({
+    resolver: zodResolver(coordinatorFormSchema),
     defaultValues: {
-      centerId: "",
-      centerName: "",
-      countryCode: "+1",
-      phoneNumber: "",
+      id: "",
+      name: "",
       email: "",
-      website: "",
-      yearEstablished: "",
+      dob: "",
+      age: 0,
+      bloodGroup: "",
       country: "",
       state: "",
       city: "",
       street: "",
       nearby: "",
       pincode: "",
-      description: "",
+      profession: "",
+      test: "",
+      facebookLink: "",
+      twitterLink: "",
+      linkedinLink: "",
+      remarks: "",
+      centers: "",
+      status: "",
     },
   })
 
@@ -90,186 +90,112 @@ function AddCenterPageContent() {
   const selectedCountry = form.watch("country")
   const selectedState = form.watch("state")
 
-  // Load center data if in edit mode
+  // Update states when country changes
   useEffect(() => {
-    if (isEditMode && centerId) {
-      setIsLoading(true)
-      const storedCenters = JSON.parse(localStorage.getItem("medicalCenters") || "[]")
-      const defaultCenters = [
-        {
-          id: "CTR0005",
-          centerName: "Apollo Medical Center",
-          appointmentDate: "26 Sep 2024",
-          appointmentTime: "10:20 AM",
-          location: "Bangalore, Karnataka",
-          lastBooking: "11 Feb 2024",
-          image: "/placeholder.svg?height=200&width=200",
-          countryCode: "+1",
-          phoneNumber: "9876543210",
-          email: "apollo@example.com",
-          website: "https://www.apollo.com",
-          yearEstablished: "2010",
-          country: "United States",
-          state: "California",
-          city: "San Francisco",
-          street: "123 Medical Avenue",
-          nearby: "Near Central Park",
-          pincode: "94105",
-          description: "A leading medical center with state-of-the-art facilities.",
-        },
-        {
-          id: "CTR0006",
-          centerName: "Fortis Healthcare",
-          appointmentDate: "25 Aug 2024",
-          appointmentTime: "10:45 AM",
-          location: "Mumbai, Maharashtra",
-          lastBooking: "03 Jan 2024",
-          image: "/placeholder.svg?height=200&width=200",
-          countryCode: "+44",
-          phoneNumber: "8765432109",
-          email: "fortis@example.com",
-          website: "https://www.fortis.com",
-          yearEstablished: "2005",
-          country: "United Kingdom",
-          state: "England",
-          city: "London",
-          street: "456 Health Street",
-          nearby: "Near Victoria Station",
-          pincode: "EC1A 1BB",
-          description: "Comprehensive healthcare services for all age groups.",
-        },
-        {
-          id: "CTR0007",
-          centerName: "Max Super Speciality Hospital",
-          appointmentDate: "27 Aug 2024",
-          appointmentTime: "10:45 AM",
-          location: "Delhi, Delhi",
-          lastBooking: "03 Jan 2024",
-          image: "/placeholder.svg?height=200&width=200",
-          countryCode: "+1",
-          phoneNumber: "7654321098",
-          email: "max@example.com",
-          website: "https://www.maxhospital.com",
-          yearEstablished: "2008",
-          country: "Canada",
-          state: "Ontario",
-          city: "Toronto",
-          street: "789 Hospital Road",
-          nearby: "Near City Hall",
-          pincode: "M5V 2H1",
-          description: "Specialized medical care with advanced technology.",
-        },
-      ]
-
-      // Combine default and stored centers
-      const allCenters = [...defaultCenters, ...storedCenters]
-      const centerToEdit = allCenters.find((center) => center.id === centerId)
-
-      if (centerToEdit) {
-        // Set form values all at once to prevent multiple renders
-        form.reset({
-          centerId: centerToEdit.id,
-          centerName: centerToEdit.centerName,
-          countryCode: centerToEdit.countryCode || "+1",
-          phoneNumber: centerToEdit.phoneNumber || "",
-          email: centerToEdit.email || "",
-          website: centerToEdit.website || "",
-          yearEstablished: centerToEdit.yearEstablished || "",
-          country: centerToEdit.country || "",
-          state: centerToEdit.state || "",
-          city: centerToEdit.city || "",
-          street: centerToEdit.street || "",
-          nearby: centerToEdit.nearby || "",
-          pincode: centerToEdit.pincode || "",
-          description: centerToEdit.description || "",
-        })
-
-        // Set image preview
-        setImagePreview(centerToEdit.image)
-      }
-
-      // Schedule setting form initialized after form reset is processed
-      setTimeout(() => {
-        setFormInitialized(true)
-        setIsLoading(false)
-      }, 0)
-    } else {
-      setFormInitialized(true)
-    }
-  }, [isEditMode, centerId, form])
-
-  // Update states when country changes - with dependency checks to prevent infinite loops
-  useEffect(() => {
-    if (!formInitialized) return;
-    
     if (selectedCountry) {
       const statesForCountry = states[selectedCountry] || []
       setAvailableStates(statesForCountry)
 
-      // Only reset state if not in edit mode or if we're not currently loading data
-      if (!isLoading) {
-        // Check if the current state is valid for the selected country
-        const isStateValid = statesForCountry.includes(form.getValues("state"))
-        if (!isStateValid) {
-          form.setValue("state", "", { shouldValidate: false })
-          form.setValue("city", "", { shouldValidate: false })
-        }
-      }
-    }
-  }, [selectedCountry, formInitialized, isLoading, form])
+      // Reset state and city if country changes
+      const currentState = form.getValues("state")
+      const isStateValid = statesForCountry.includes(currentState)
 
-  // Update cities when state changes - with dependency checks to prevent infinite loops
+      if (currentState && !isStateValid) {
+        form.setValue("state", "", { shouldValidate: false })
+        form.setValue("city", "", { shouldValidate: false })
+        setAvailableCities([])
+      }
+    } else {
+      setAvailableStates([])
+      setAvailableCities([])
+    }
+  }, [selectedCountry, form])
+
+  // Update cities when state changes
   useEffect(() => {
-    if (!formInitialized) return;
-    
     if (selectedCountry && selectedState) {
       const citiesForState = cities[`${selectedCountry}-${selectedState}`] || []
       setAvailableCities(citiesForState)
 
-      // Only reset city if not in edit mode or if we're not currently loading data
-      if (!isLoading) {
-        // Check if the current city is valid for the selected state
-        const isCityValid = citiesForState.includes(form.getValues("city"))
-        if (!isCityValid) {
-          form.setValue("city", "", { shouldValidate: false })
-        }
-      }
-    }
-  }, [selectedCountry, selectedState, formInitialized, isLoading, form])
+      // Reset city if state changes and current city is not valid
+      const currentCity = form.getValues("city")
+      const isCityValid = citiesForState.includes(currentCity)
 
-  function onSubmit(data: CenterFormValues) {
-    // Create center object with all data
-    const centerData: CenterData = {
+      if (currentCity && !isCityValid) {
+        form.setValue("city", "", { shouldValidate: false })
+      }
+    } else {
+      setAvailableCities([])
+    }
+  }, [selectedCountry, selectedState, form])
+
+  // Calculate age from date of birth
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+
+    return age
+  }
+
+  // Update age when date of birth changes
+  const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dob = e.target.value
+    form.setValue("dob", dob)
+
+    if (dob) {
+      const age = calculateAge(dob)
+      form.setValue("age", age)
+    }
+  }
+
+  function onSubmit(data: CoordinatorFormValues) {
+    // Generate ID if not provided
+    if (!data.id) {
+      data.id = `COORD${Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4, "0")}`
+    }
+
+    // Create coordinator object with all data
+    const coordinatorData = {
       ...data,
-      id:
-        data.centerId ||
-        `CTR${Math.floor(Math.random() * 10000)
-          .toString()
-          .padStart(4, "0")}`,
-      image: imagePreview || "/placeholder.svg",
-      location: `${data.city}, ${data.state}`,
-      lastBooking: isEditMode ? "Updated" : "New Center",
+      image: imagePreview || "/placeholder.svg?height=200&width=200",
+      address: {
+        country: data.country,
+        state: data.state,
+        city: data.city,
+        street: data.street,
+        nearby: data.nearby,
+        pincode: data.pincode,
+      },
+      socialLinks: {
+        facebook: data.facebookLink,
+        twitter: data.twitterLink,
+        linkedin: data.linkedinLink,
+      },
       appointmentDate: new Date().toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" }),
       appointmentTime: "Available",
+      location: `${data.city}, ${data.state}`,
+      lastBooking: "New Coordinator",
     }
 
     try {
-      // Get existing centers
-      const existingCenters = JSON.parse(localStorage.getItem("medicalCenters") || "[]") as CenterData[]
+      // Get existing coordinators
+      const existingCoordinators = JSON.parse(localStorage.getItem("coordinators") || "[]")
 
-      if (isEditMode) {
-        // Update existing center
-        const updatedCenters = existingCenters.map((center) => (center.id === centerData.id ? centerData : center))
-        localStorage.setItem("medicalCenters", JSON.stringify(updatedCenters))
-      } else {
-        // Add new center
-        localStorage.setItem("medicalCenters", JSON.stringify([...existingCenters, centerData]))
-      }
+      // Add new coordinator
+      localStorage.setItem("coordinators", JSON.stringify([...existingCoordinators, coordinatorData]))
 
-      // Redirect to centers list
-      router.push("/centres")
+      // Redirect to coordinators list
+      router.push("/user-entities/coordinators")
     } catch (error) {
-      console.error("Error saving center data:", error)
+      console.error("Error saving coordinator data:", error)
     }
   }
 
@@ -302,109 +228,38 @@ function AddCenterPageContent() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex m-8 justify-center items-center">
-          <div className="text-center">
-            <p className="text-lg">Loading center data...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <div className="flex flex-1 m-8">
-      <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />
-      
+        <Sidebar/>
+
         <main className="flex-1 p-6">
           <div className="container mx-auto max-w-5xl">
-            <h1 className="mb-6 text-2xl font-semibold">{isEditMode ? "Edit Center Details" : "Add Center Details"}</h1>
+            <h1 className="mb-6 text-2xl font-semibold">Add Patients</h1>
 
             <Card>
               <CardContent className="p-6">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Center Basic Information */}
+                    {/* Basic Information */}
                     <div className="space-y-6">
-                      <h2 className="text-lg font-medium border-b pb-2">Center Information</h2>
+                      <h2 className="text-lg font-medium border-b pb-2">Basic Information</h2>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
-                          name="centerId"
+                          name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Center ID *</FormLabel>
+                              <FormLabel>Full Name *</FormLabel>
                               <FormControl>
-                                <Input placeholder="CTR001" {...field} disabled={isEditMode} />
+                                <Input placeholder="John Doe" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-
-                        <FormField
-                          control={form.control}
-                          name="centerName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Center Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Apollo Medical Center" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="flex space-x-2">
-                          <FormField
-                            control={form.control}
-                            name="countryCode"
-                            render={({ field }) => (
-                              <FormItem className="w-24">
-                                <FormLabel>Code *</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="+1" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="+1">+1</SelectItem>
-                                    <SelectItem value="+44">+44</SelectItem>
-                                    <SelectItem value="+61">+61</SelectItem>
-                                    <SelectItem value="+65">+65</SelectItem>
-                                    <SelectItem value="+91">+91</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="phoneNumber"
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel>Phone Number *</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="9876543210" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
 
                         <FormField
                           control={form.control}
@@ -413,8 +268,72 @@ function AddCenterPageContent() {
                             <FormItem>
                               <FormLabel>Email Address *</FormLabel>
                               <FormControl>
-                                <Input placeholder="center@example.com" type="email" {...field} />
+                                <Input placeholder="john.doe@example.com" type="email" {...field} />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="dob"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date of Birth *</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} onChange={handleDobChange} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="age"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Age</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  disabled
+                                  value={field.value || 0}
+                                  onChange={(e) => field.onChange(Number.parseInt(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="bloodGroup"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Blood Group *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select blood group" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="A+">A+</SelectItem>
+                                  <SelectItem value="A-">A-</SelectItem>
+                                  <SelectItem value="B+">B+</SelectItem>
+                                  <SelectItem value="B-">B-</SelectItem>
+                                  <SelectItem value="AB+">AB+</SelectItem>
+                                  <SelectItem value="AB-">AB-</SelectItem>
+                                  <SelectItem value="O+">O+</SelectItem>
+                                  <SelectItem value="O-">O-</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -424,12 +343,12 @@ function AddCenterPageContent() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
-                          name="website"
+                          name="profession"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Website</FormLabel>
+                              <FormLabel>Profession *</FormLabel>
                               <FormControl>
-                                <Input placeholder="https://www.example.com" {...field} />
+                                <Input placeholder="Medical Coordinator" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -438,12 +357,12 @@ function AddCenterPageContent() {
 
                         <FormField
                           control={form.control}
-                          name="yearEstablished"
+                          name="test"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Year Established *</FormLabel>
+                              <FormLabel>Test</FormLabel>
                               <FormControl>
-                                <Input placeholder="2020" {...field} />
+                                <Input placeholder="Test information" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -576,16 +495,121 @@ function AddCenterPageContent() {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    {/* Social Links */}
+                    <div className="space-y-6">
+                      <h2 className="text-lg font-medium border-b pb-2">Social Links</h2>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="facebookLink"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Facebook</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://facebook.com/username" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="twitterLink"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Twitter</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://twitter.com/username" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="linkedinLink"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>LinkedIn</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://linkedin.com/in/username" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Additional Information */}
+                    <div className="space-y-6">
+                      <h2 className="text-lg font-medium border-b pb-2">Additional Information</h2>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="centers"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Assigned Centers *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select center" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Apollo Medical Center">Apollo Medical Center</SelectItem>
+                                  <SelectItem value="Fortis Healthcare">Fortis Healthcare</SelectItem>
+                                  <SelectItem value="Max Super Speciality Hospital">
+                                    Max Super Speciality Hospital
+                                  </SelectItem>
+                                  <SelectItem value="All Centers">All Centers</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Status *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="processing">Processing</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       <FormField
                         control={form.control}
-                        name="description"
+                        name="remarks"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Center Description</FormLabel>
+                            <FormLabel>Remarks</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Brief description of the medical center"
+                                placeholder="Additional notes or remarks about the coordinator"
                                 className="min-h-[100px]"
                                 {...field}
                               />
@@ -598,7 +622,7 @@ function AddCenterPageContent() {
 
                     {/* Image Upload Section */}
                     <div className="space-y-4">
-                      <h2 className="text-lg font-medium border-b pb-2">Center Image</h2>
+                      <h2 className="text-lg font-medium border-b pb-2">Profile Image</h2>
                       <div
                         className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center"
                         onDragOver={(e) => e.preventDefault()}
@@ -606,16 +630,11 @@ function AddCenterPageContent() {
                       >
                         {imagePreview ? (
                           <div className="relative w-full max-w-md">
-                            <div className="w-full rounded-lg max-h-64 relative">
-                              <Image
-                                src={imagePreview}
-                                alt="Center preview"
-                                width={400}
-                                height={300}
-                                className="rounded-lg object-cover max-h-64"
-                                unoptimized
-                              />
-                            </div>
+                            <Image
+                              src={imagePreview || "/placeholder.svg"}
+                              alt="Profile preview"
+                              className="w-full h-auto rounded-lg object-cover max-h-64"
+                            />
                             <Button
                               type="button"
                               variant="destructive"
@@ -628,7 +647,7 @@ function AddCenterPageContent() {
                           </div>
                         ) : (
                           <label
-                            htmlFor="center-image"
+                            htmlFor="profile-image"
                             className="flex flex-col items-center justify-center cursor-pointer w-full h-full"
                           >
                             <Upload className="h-12 w-12 text-gray-400 mb-2" />
@@ -642,7 +661,7 @@ function AddCenterPageContent() {
                           type="file"
                           accept="image/*"
                           className="hidden"
-                          id="center-image"
+                          id="profile-image"
                           onChange={handleImageUpload}
                         />
                       </div>
@@ -650,11 +669,11 @@ function AddCenterPageContent() {
 
                     {/* Submit Button */}
                     <div className="flex justify-end gap-4">
-                      <Button type="button" variant="outline" onClick={() => router.push("/centres")}>
+                      <Button type="button" variant="outline" onClick={() => router.push("/user-entities/patients")}>
                         Cancel
                       </Button>
                       <Button type="submit" className="bg-[#4ead91] hover:bg-[#3c9a7f] text-white px-8">
-                        {isEditMode ? "Update Center" : "Add Center"}
+                        Add Patients
                       </Button>
                     </div>
                   </form>
@@ -669,21 +688,3 @@ function AddCenterPageContent() {
   )
 }
 
-// Export a main component that provides the Suspense boundary
-export default function AddCenterPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex m-8 justify-center items-center">
-          <div className="text-center">
-            <p className="text-lg">Loading...</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    }>
-      <AddCenterPageContent />
-    </Suspense>
-  )
-}
