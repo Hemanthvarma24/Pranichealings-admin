@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: '/admin',
+  // basePath: '/admin',
   output: 'export',
   images: {
     unoptimized: true, 
