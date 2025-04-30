@@ -17,7 +17,7 @@ export function Footer() {
 
   return (
     <footer className="bg-[#e8f1ff] mt-auto">
-      <div className="container mx-auto px-4 py-12 lg:px-6">
+      <div className="container mx-auto px-4 py-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Image
@@ -100,7 +100,7 @@ export function Footer() {
 
           <div>
             <h3 className="text-lg font-semibold mb-4">
-              Subscribe to Newsletter
+            Connect with us
             </h3>
             <div className="space-y-4">
               <Input placeholder="Enter Email Address" className="bg-white" />
@@ -109,7 +109,7 @@ export function Footer() {
               </Button>
             </div>
             <div className="mt-6 space-y-4">
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-row gap-4">
                 <Link href="#">
                   <Image
                     src={AppStore}
@@ -135,8 +135,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
             {/* Payment Methods */}
             <div className="flex flex-wrap gap-4 items-center">
               <Image

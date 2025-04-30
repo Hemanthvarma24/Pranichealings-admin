@@ -24,26 +24,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-// Simplified form schema with only treatment name
+// Updated form schema for symptoms
 const formSchema = z.object({
-  treatmentName: z
+  symptomName: z
     .string()
-    .min(2, { message: "Treatment name must be at least 2 characters." }),
+    .min(2, { message: "Symptom name must be at least 2 characters." }),
+  treatments: z.array(z.string()).optional(),
 });
 
-interface Treatment {
+interface Symptom {
   id: string;
-  treatmentName: string;
-  categories: string[];
+  symptomName: string;
+  treatments: string[];
 }
+
+// Sample treatments data
+const availableTreatments = [
+  { id: "TR001", name: "ACE Inhibitors" },
+  { id: "TR002", name: "Bronchodilators" },
+  { id: "TR003", name: "tPA Therapy" },
+  { id: "TR004", name: "Antibiotics" },
+  { id: "TR005", name: "Pain Management" },
+];
 
 // Client-side only component that uses useSearchParams
 function RoleWrapper() {
-  // Pass the role as defaultRole prop instead of role
   return <Sidebar />;
 }
 
@@ -52,92 +62,115 @@ function SidebarFallback() {
   return <div className="w-64 bg-gray-100 animate-pulse"></div>;
 }
 
-export default function TreatmentsPage() {
+export default function SymptomsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
-  const [treatments, setTreatments] = useState<Treatment[]>([
-    { id: "#TR001", treatmentName: "ACE Inhibitors", categories: ["Cardiac"] },
+  const [symptoms, setSymptoms] = useState<Symptom[]>([
     {
-      id: "#TR002",
-      treatmentName: "Bronchodilators",
-      categories: ["Respiratory"],
+      id: "#SYM001",
+      symptomName: "Chest Pain",
+      treatments: ["TR001", "TR005"],
     },
     {
-      id: "#TR003",
-      treatmentName: "tPA Therapy",
-      categories: ["Neurological"],
+      id: "#SYM002",
+      symptomName: "Shortness of Breath",
+      treatments: ["TR002"],
+    },
+    {
+      id: "#SYM003",
+      symptomName: "Headache",
+      treatments: ["TR005"],
     },
   ]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingTreatment, setEditingTreatment] = useState<Treatment | null>(
-    null
-  );
+  const [editingSymptom, setEditingSymptom] = useState<Symptom | null>(null);
+  const [selectedTreatments, setSelectedTreatments] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      treatmentName: "",
+      symptomName: "",
+      treatments: [],
     },
   });
 
-  const handleEdit = (treatment: Treatment) => {
-    setEditingTreatment(treatment);
+  const handleEdit = (symptom: Symptom) => {
+    setEditingSymptom(symptom);
+    setSelectedTreatments(symptom.treatments);
     form.reset({
-      treatmentName: treatment.treatmentName,
+      symptomName: symptom.symptomName,
+      treatments: symptom.treatments,
     });
     setIsAddDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    setTreatments((prevTreatments) =>
-      prevTreatments.filter((treatment) => treatment.id !== id)
+    setSymptoms((prevSymptoms) =>
+      prevSymptoms.filter((symptom) => symptom.id !== id)
     );
     toast({
-      title: "Treatment Deleted",
-      description: `Treatment ${id} has been deleted.`,
+      title: "Symptom Deleted",
+      description: `Symptom ${id} has been deleted.`,
       variant: "destructive",
     });
   };
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (editingTreatment) {
-      // Update existing treatment
-      setTreatments((prevTreatments) =>
-        prevTreatments.map((treatment) =>
-          treatment.id === editingTreatment.id
-            ? { ...treatment, treatmentName: values.treatmentName }
-            : treatment
+    if (editingSymptom) {
+      // Update existing symptom
+      setSymptoms((prevSymptoms) =>
+        prevSymptoms.map((symptom) =>
+          symptom.id === editingSymptom.id
+            ? {
+                ...symptom,
+                symptomName: values.symptomName,
+                treatments: selectedTreatments,
+              }
+            : symptom
         )
       );
       toast({
-        title: "Treatment Updated",
-        description: `Treatment ${editingTreatment.id} has been updated.`,
+        title: "Symptom Updated",
+        description: `Symptom ${editingSymptom.id} has been updated.`,
       });
     } else {
-      // Generate a new ID for the new treatment
-      const nextId = treatments.length + 1;
-      const newId = `#TR${String(nextId).padStart(3, "0")}`;
+      // Generate a new ID for the new symptom
+      const nextId = symptoms.length + 1;
+      const newId = `#SYM${String(nextId).padStart(3, "0")}`;
 
-      // Add new treatment with the generated ID
-      const newTreatment: Treatment = {
+      // Add new symptom with the generated ID
+      const newSymptom: Symptom = {
         id: newId,
-        treatmentName: values.treatmentName,
-        categories: ["General"], // Default category
+        symptomName: values.symptomName,
+        treatments: selectedTreatments,
       };
 
-      setTreatments((prevTreatments) => [...prevTreatments, newTreatment]);
+      setSymptoms((prevSymptoms) => [...prevSymptoms, newSymptom]);
 
       toast({
-        title: "Treatment Added",
-        description: `Treatment ${newId} has been added.`,
+        title: "Symptom Added",
+        description: `Symptom ${newId} has been added.`,
       });
     }
 
     // Close dialog and reset form
     setIsAddDialogOpen(false);
-    setEditingTreatment(null);
+    setEditingSymptom(null);
+    setSelectedTreatments([]);
     form.reset({
-      treatmentName: "",
+      symptomName: "",
+      treatments: [],
+    });
+  };
+
+  // Handle treatment selection change
+  const handleTreatmentChange = (treatmentId: string) => {
+    setSelectedTreatments((prev) => {
+      if (prev.includes(treatmentId)) {
+        return prev.filter((id) => id !== treatmentId);
+      } else {
+        return [...prev, treatmentId];
+      }
     });
   };
 
@@ -145,11 +178,21 @@ export default function TreatmentsPage() {
   const handleDialogChange = (open: boolean) => {
     setIsAddDialogOpen(open);
     if (!open) {
-      setEditingTreatment(null);
+      setEditingSymptom(null);
+      setSelectedTreatments([]);
       form.reset({
-        treatmentName: "",
+        symptomName: "",
+        treatments: [],
       });
     }
+  };
+
+  // Helper function to get treatment names from IDs
+  const getTreatmentNames = (treatmentIds: string[]) => {
+    return treatmentIds
+      .map((id) => availableTreatments.find((t) => t.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
   };
 
   return (
@@ -161,7 +204,7 @@ export default function TreatmentsPage() {
         </Suspense>
         <main className="flex-1 p-6">
           <div className="mb-4">
-            <h1 className="text-3xl font-bold mb-4">Treatments</h1>
+            <h1 className="text-3xl font-bold mb-4">Symptoms</h1>
           </div>
 
           <div className="flex justify-between items-center mb-6">
@@ -178,19 +221,21 @@ export default function TreatmentsPage() {
                 <Button
                   className="bg-[#4ead91] hover:bg-green"
                   onClick={() => {
-                    setEditingTreatment(null);
+                    setEditingSymptom(null);
+                    setSelectedTreatments([]);
                     form.reset({
-                      treatmentName: "",
+                      symptomName: "",
+                      treatments: [],
                     });
                   }}
                 >
-                  Add Treatment
+                  Add Symptom
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[400px]">
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingTreatment ? "Edit Treatment" : "Add Treatment"}
+                    {editingSymptom ? "Edit Symptom" : "Add Symptom"}
                   </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -200,13 +245,13 @@ export default function TreatmentsPage() {
                   >
                     <FormField
                       control={form.control}
-                      name="treatmentName"
+                      name="symptomName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Treatment Name</FormLabel>
+                          <FormLabel>Symptom Name</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Enter treatment name"
+                              placeholder="Enter symptom name"
                               {...field}
                             />
                           </FormControl>
@@ -214,6 +259,48 @@ export default function TreatmentsPage() {
                         </FormItem>
                       )}
                     />
+
+                    <div className="space-y-2">
+                      <FormLabel>Treatments</FormLabel>
+                      <div className="border rounded-md p-4">
+                        <div className="space-y-4">
+                          {availableTreatments.map((treatment) => (
+                            <div
+                              key={treatment.id}
+                              className="flex items-center space-x-2"
+                              onClick={() => handleTreatmentChange(treatment.id)}
+                            >
+                              <div
+                                className={`w-5 h-5 rounded-sm border flex items-center justify-center cursor-pointer ${
+                                  selectedTreatments.includes(treatment.id)
+                                    ? "bg-[#4ead91] text-white border-[#4ead91]"
+                                    : "border-gray-300"
+                                }`}
+                              >
+                                {selectedTreatments.includes(treatment.id) && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                )}
+                              </div>
+                              <Label className="cursor-pointer">
+                                {treatment.name}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
 
                     <Button
                       type="submit"
@@ -236,10 +323,10 @@ export default function TreatmentsPage() {
                       ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Treatment Name
+                      Symptom 
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
+                      Treatments
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -247,39 +334,37 @@ export default function TreatmentsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {treatments
+                  {symptoms
                     .filter(
-                      (treatment) =>
-                        treatment.treatmentName
+                      (symptom) =>
+                        symptom.symptomName
                           .toLowerCase()
                           .includes(searchTerm.toLowerCase()) ||
-                        treatment.id
+                        symptom.id
                           .toLowerCase()
                           .includes(searchTerm.toLowerCase()) ||
-                        treatment.categories.some((category) =>
-                          category
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
-                        )
+                        getTreatmentNames(symptom.treatments)
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase())
                     )
-                    .map((treatment) => (
-                      <tr key={treatment.id}>
+                    .map((symptom) => (
+                      <tr key={symptom.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                          {treatment.id}
+                          {symptom.id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {treatment.treatmentName}
+                            {symptom.symptomName}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {treatment.categories.join(", ")}
+                          {getTreatmentNames(symptom.treatments)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEdit(treatment)}
+                            onClick={() => handleEdit(symptom)}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <Pencil className="h-4 w-4 mr-1" />
@@ -288,7 +373,7 @@ export default function TreatmentsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(treatment.id)}
+                            onClick={() => handleDelete(symptom.id)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
