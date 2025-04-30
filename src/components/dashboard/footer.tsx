@@ -190,7 +190,7 @@ export function Footer() {
 
             {/* Copyright Section */}
             <div className="text-sm text-gray-600 whitespace-nowrap">
-              © {currentYear} Pranic Healing. All Rights Reserved
+              © {currentYear}. All Rights Reserved
             </div>
           </div>
         </div>
