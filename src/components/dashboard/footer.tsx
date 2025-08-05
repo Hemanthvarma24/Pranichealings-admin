@@ -104,93 +104,9 @@ export function Footer() {
             </h3>
             <div className="space-y-4">
               <Input placeholder="Enter Email Address" className="bg-white" />
-              <Button className="w-full bg-[#4ead91] hover:bg-[#0b5ed7] text-white">
+              <Button className="w-full bg-[#48c373] hover:bg-[#0b5ed7] text-white">
                 Submit
               </Button>
-            </div>
-            <div className="mt-6 space-y-4">
-              <div className="flex flex-row gap-4">
-                <Link href="#">
-                  <Image
-                    src={AppStore}
-                    alt="Download on the App Store"
-                    width={140}
-                    height={42}
-                    className="h-[42px] w-auto"
-                    unoptimized
-                  />
-                </Link>
-                <Link href="#">
-                  <Image
-                    src={PlayStore}
-                    alt="Get it on Google Play"
-                    width={140}
-                    height={42}
-                    className="h-[42px] w-auto"
-                    unoptimized
-                  />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-            {/* Payment Methods */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <Image
-                src={Paytm}
-                alt="Paytm"
-                width={60}
-                height={30}
-                className="h-8 w-auto"
-                unoptimized
-              />
-              <Image
-                src={Runpay}
-                alt="RuPay"
-                width={60}
-                height={30}
-                className="h-8 w-auto"
-                unoptimized
-              />
-              <Image
-                src={Visa}
-                alt="Visa"
-                width={60}
-                height={30}
-                className="h-8 w-auto"
-                unoptimized
-              />
-              <Image
-                src={Mastercard}
-                alt="Mastercard"
-                width={60}
-                height={30}
-                className="h-8 w-auto"
-                unoptimized
-              />
-            </div>
-
-            {/* Social Media Links */}
-            <div className="flex gap-4">
-              {[Facebook, Twitter, Linkedin, Instagram, Dribbble].map(
-                (Icon, index) => (
-                  <Link
-                    key={index}
-                    href="#"
-                    className="bg-gray-900 text-white p-2 rounded-full hover:bg-gray-700"
-                  >
-                    <Icon className="h-5 w-5" />
-                  </Link>
-                )
-              )}
-            </div>
-
-            {/* Copyright Section */}
-            <div className="text-sm text-gray-600 whitespace-nowrap">
-              © {currentYear}. All Rights Reserved
             </div>
           </div>
         </div>

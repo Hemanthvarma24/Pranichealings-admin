@@ -140,7 +140,8 @@ const PayoutsPage: React.FC = () => {
         <Suspense fallback={<SidebarFallback />}>
           <RoleWrapper />
         </Suspense>
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 h-screen overflow-y-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <div className="container mx-auto p-6">
             <StatsCards />
             <Card>
@@ -219,7 +220,6 @@ const PayoutsPage: React.FC = () => {
           </div>
         </main>
       </div>
-      <Footer />
     </div>
   );
 };

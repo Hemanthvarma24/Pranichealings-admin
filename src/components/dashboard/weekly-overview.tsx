@@ -23,11 +23,11 @@ export function WeeklyOverview() {
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-blue-500" />
+            <div className="h-3 w-3 rounded-full bg-[#b3d696]" />
             <span className="text-sm">Revenue</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-blue-200" />
+            <div className="h-3 w-3 rounded-full bg-[#ddedce]" />
             <span className="text-sm">Appointments</span>
           </div>
         </div>
@@ -36,8 +36,8 @@ export function WeeklyOverview() {
             <BarChart data={data}>
               <XAxis dataKey="name" />
               <YAxis />
-              <Bar dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="appointments" fill="#BFDBFE" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenue" fill="#b3d696" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="appointments" fill="#ddedce" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

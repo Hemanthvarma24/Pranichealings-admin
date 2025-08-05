@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import Image from "next/image"
+import Image, { type StaticImageData } from "next/image"
 import Link from "next/link"
 import { Search, MapPin, Calendar, Clock, History } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,9 @@ import { Header } from "@/components/dashboard/header"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Footer } from "@/components/dashboard/footer"
 import { useSearchParams } from "next/navigation"
+import apollo from "@/app/assets/Apollo.jpeg"
+import forties from "@/app/assets/forties.jpeg"
+import max from "@/app/assets/max.jpeg"
 
 type Center = {
   id: string
@@ -19,8 +22,7 @@ type Center = {
   appointmentTime: string
   location: string
   lastBooking: string
-  image: string
-  // Additional fields for edit functionality
+  image: string | StaticImageData
   countryCode?: string
   phoneNumber?: string
   email?: string
@@ -35,73 +37,69 @@ type Center = {
   description?: string
 }
 
-const CenterCard = ({ center }: { center: Center }) => (
-  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-    <CardContent className="p-6">
-      <div className="flex items-start gap-4">
-        <div className="relative h-16 w-16 flex-shrink-0">
-          <Image
-            src={center.image || "/placeholder.svg"}
-            alt={center.centerName}
-            fill
-            className="rounded-lg object-cover"
-            unoptimized
-          />
+function CenterCard({ center, role }: { center: Center; role: string }) {
+  return (
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="relative h-16 w-16 flex-shrink-0">
+            <Image
+              src={center.image || "/placeholder.svg?height=64&width=64"}
+              alt={center.centerName}
+              fill
+              className="rounded-lg object-cover"
+              unoptimized
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="text-sm text-blue-600 font-medium mb-1">#{center.id}</div>
+                <h3 className="font-semibold text-lg">{center.centerName}</h3>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="h-4 w-4" />
+                <span>{center.appointmentDate}</span>
+                <Clock className="h-4 w-4 ml-2" />
+                <span>{center.appointmentTime}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                <span>{center.location}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <History className="h-4 w-4" />
+                <span>Last Booking: {center.lastBooking}</span>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-4">
+              <Link href="/centres/center-detail">
+                <Button variant="link" className="p-0 h-auto font-medium">
+                  View Details
+                </Button>
+              </Link>
+              <Link href={`/centres/add-center?edit=true&id=${encodeURIComponent(center.id)}&role=${role}`}>
+                <Button variant="link" className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800">
+                  Edit
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="text-sm text-blue-600 font-medium mb-1">#{center.id}</div>
-              <h3 className="font-semibold text-lg">{center.centerName}</h3>
-            </div>
-          </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4" />
-              <span>{center.appointmentDate}</span>
-              <Clock className="h-4 w-4 ml-2" />
-              <span>{center.appointmentTime}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4" />
-              <span>{center.location}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <History className="h-4 w-4" />
-              <span>Last Booking: {center.lastBooking}</span>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-4">
-            <Link href="/centres/center-detail">
-              <Button variant="link" className="p-0 h-auto font-medium">
-                View Details
-              </Button>
-            </Link>
-            <Link href={`/centres/add-center?edit=true&id=${center.id}`}>
-              <Button variant="link" className="p-0 h-auto font-medium">
-                Edit
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-)
-
-const RoleWrapper = () => {
-  const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "admin"
-  return <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />
+      </CardContent>
+    </Card>
+  )
 }
 
-export default function CentersPage() {
+function CentersPageContent() {
+  const searchParams = useSearchParams()
+  const role = searchParams.get("role") || "admin"
   const [searchQuery, setSearchQuery] = useState("")
   const [centers, setCenters] = useState<Center[]>([])
 
-  // Load centers from localStorage on component mount
   useEffect(() => {
-    // Default centers - moved inside the useEffect to avoid recreating on every render
     const defaultCenters: Center[] = [
       {
         id: "CTR0005",
@@ -110,10 +108,19 @@ export default function CentersPage() {
         appointmentTime: "10:20 AM",
         location: "Bangalore, Karnataka",
         lastBooking: "11 Feb 2024",
-        image: "/placeholder.svg?height=200&width=200",
+        image: apollo,
+        countryCode: "+1",
+        phoneNumber: "9876543210",
+        email: "apollo@example.com",
+        website: "https://www.apollo.com",
+        yearEstablished: "2010",
         country: "United States",
         state: "California",
         city: "San Francisco",
+        street: "123 Medical Avenue",
+        nearby: "Near Central Park",
+        pincode: "94105",
+        description: "A leading medical center with state-of-the-art facilities.",
       },
       {
         id: "CTR0006",
@@ -122,10 +129,19 @@ export default function CentersPage() {
         appointmentTime: "10:45 AM",
         location: "Mumbai, Maharashtra",
         lastBooking: "03 Jan 2024",
-        image: "/placeholder.svg?height=200&width=200",
+        image: forties,
+        countryCode: "+44",
+        phoneNumber: "8765432109",
+        email: "fortis@example.com",
+        website: "https://www.fortis.com",
+        yearEstablished: "2005",
         country: "United Kingdom",
         state: "England",
         city: "London",
+        street: "456 Health Street",
+        nearby: "Near Victoria Station",
+        pincode: "EC1A 1BB",
+        description: "Comprehensive healthcare services for all age groups.",
       },
       {
         id: "CTR0007",
@@ -134,20 +150,35 @@ export default function CentersPage() {
         appointmentTime: "10:45 AM",
         location: "Delhi, Delhi",
         lastBooking: "03 Jan 2024",
-        image: "/placeholder.svg?height=200&width=200",
+        image: max,
+        countryCode: "+1",
+        phoneNumber: "7654321098",
+        email: "max@example.com",
+        website: "https://www.maxhospital.com",
+        yearEstablished: "2008",
         country: "Canada",
         state: "Ontario",
         city: "Toronto",
+        street: "789 Hospital Road",
+        nearby: "Near City Hall",
+        pincode: "M5V 2H1",
+        description: "Specialized medical care with advanced technology.",
       },
     ]
 
-    const storedCenters = localStorage.getItem("medicalCenters")
-    if (storedCenters) {
-      setCenters([...defaultCenters, ...JSON.parse(storedCenters)])
-    } else {
+    try {
+      const storedCenters = localStorage.getItem("medicalCenters")
+      if (storedCenters) {
+        const parsedCenters = JSON.parse(storedCenters)
+        setCenters([...defaultCenters, ...parsedCenters])
+      } else {
+        setCenters(defaultCenters)
+      }
+    } catch (error) {
+      console.error("Error loading centers:", error)
       setCenters(defaultCenters)
     }
-  }, []) // Empty dependency array since defaultCenters is now inside the effect
+  }, [])
 
   const filteredCenters = centers.filter(
     (center) =>
@@ -158,11 +189,10 @@ export default function CentersPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 flex m-8">
-        <Suspense fallback={<div>Loading sidebar...</div>}>
-          <RoleWrapper />
-        </Suspense>
-        <main className="flex-1 p-8">
+      <div className="flex-1 flex m-8 min-h-screen ">
+        <Sidebar defaultRole={role as "admin" | "coordinators" | "healers"} />
+        <main className="flex-1 p-8 h-screen overflow-y-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Centers</h1>
             <div className="flex justify-between items-center mb-6">
@@ -176,14 +206,14 @@ export default function CentersPage() {
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               </div>
-              <Link href="/centres/add-center">
-                <Button className="bg-[#4ead91] hover:bg-[#3c9a7f] text-white">Add Center</Button>
+              <Link href={`/centres/add-center?role=${role}`}>
+                <Button className="bg-[#48c373] hover:bg-[#3c9a7f] text-white">Add Center</Button>
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCenters.map((center) => (
-                <CenterCard key={center.id} center={center} />
+                <CenterCard key={center.id} center={center} role={role} />
               ))}
             </div>
 
@@ -193,8 +223,14 @@ export default function CentersPage() {
           </div>
         </main>
       </div>
-      <Footer />
     </div>
   )
 }
 
+export default function CentersPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CentersPageContent />
+    </Suspense>
+  )
+}

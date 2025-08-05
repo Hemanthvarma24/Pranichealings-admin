@@ -2,22 +2,14 @@
 
 import { useState, Suspense } from "react";
 import Image from "next/image";
-import {
-  Search,
-  Calendar,
-  MapPin,
-  Plus,
-  Check,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Calendar, MapPin, Check, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Footer } from "@/components/dashboard/footer";
-
 import { Badge } from "@/components/ui/badge";
 
 // Import patient images
@@ -27,7 +19,6 @@ import Patientthree from "@/app/assets/patients/patient3.jpg";
 import Patientfour from "@/app/assets/patients/patient4.jpg";
 import Patientfive from "@/app/assets/patients/patient5.jpg";
 import Patientsix from "@/app/assets/patients/patient6.jpg";
-import Link from "next/link";
 
 type Entity = {
   id: string;
@@ -43,8 +34,14 @@ type Entity = {
   status?: "pending" | "processing" | "completed";
 };
 
-// EntityCard component
+// EntityCard component with navigation
 const EntityCard = ({ entity }: { entity: Entity }) => {
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`healers/healers-details?id=${entity.id}`);
+  };
+
   const getStatusBadge = () => {
     if (!entity.status) return null;
 
@@ -73,7 +70,10 @@ const EntityCard = ({ entity }: { entity: Entity }) => {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card
+      className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="relative h-16 w-16 flex-shrink-0">
@@ -139,11 +139,11 @@ function SidebarFallback() {
 }
 
 // Main page component
-export default function CoordinatorsPage() {
+export default function HealersPage() {
   const [activeTab, setActiveTab] = useState<
     "requests" | "active" | "inactive"
   >("requests");
-  
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const requests: Entity[] = [
@@ -158,7 +158,6 @@ export default function CoordinatorsPage() {
       location: "San Diego, USA",
       lastBooking: "20 Mar 2023",
       image: Patient,
-      status: "pending",
     },
     {
       id: "Apt0002",
@@ -171,7 +170,6 @@ export default function CoordinatorsPage() {
       location: "Las Vegas, USA",
       lastBooking: "25 Apr 2023",
       image: Patienttwo,
-      status: "processing",
     },
     {
       id: "Apt0003",
@@ -184,7 +182,6 @@ export default function CoordinatorsPage() {
       location: "Phoenix, USA",
       lastBooking: "30 May 2023",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0004",
@@ -197,7 +194,6 @@ export default function CoordinatorsPage() {
       location: "Dallas, USA",
       lastBooking: "05 Jun 2023",
       image: Patientfour,
-      status: "pending",
     },
   ];
 
@@ -213,7 +209,6 @@ export default function CoordinatorsPage() {
       location: "San Francisco, USA",
       lastBooking: "11 Feb 2024",
       image: Patient,
-      status: "completed",
     },
     {
       id: "Apt0006",
@@ -226,7 +221,6 @@ export default function CoordinatorsPage() {
       location: "San Antonio, USA",
       lastBooking: "03 Jan 2024",
       image: Patienttwo,
-      status: "processing",
     },
     {
       id: "Apt0007",
@@ -239,7 +233,6 @@ export default function CoordinatorsPage() {
       location: "Los Angeles, USA",
       lastBooking: "27 Feb 2024",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0008",
@@ -252,7 +245,6 @@ export default function CoordinatorsPage() {
       location: "Seattle, USA",
       lastBooking: "05 Mar 2024",
       image: Patientfour,
-      status: "processing",
     },
     {
       id: "Apt0009",
@@ -265,7 +257,6 @@ export default function CoordinatorsPage() {
       location: "Chicago, USA",
       lastBooking: "14 Apr 2024",
       image: Patientfive,
-      status: "completed",
     },
     {
       id: "Apt0010",
@@ -278,7 +269,6 @@ export default function CoordinatorsPage() {
       location: "Boston, USA",
       lastBooking: "18 May 2024",
       image: Patientsix,
-      status: "pending",
     },
   ];
 
@@ -294,7 +284,6 @@ export default function CoordinatorsPage() {
       location: "New York, USA",
       lastBooking: "15 Jun 2023",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0012",
@@ -307,7 +296,6 @@ export default function CoordinatorsPage() {
       location: "Denver, USA",
       lastBooking: "22 Jul 2023",
       image: Patientfour,
-      status: "pending",
     },
     {
       id: "Apt0013",
@@ -320,7 +308,6 @@ export default function CoordinatorsPage() {
       location: "Miami, USA",
       lastBooking: "08 Aug 2023",
       image: Patient,
-      status: "processing",
     },
   ];
 
@@ -339,7 +326,6 @@ export default function CoordinatorsPage() {
       entity.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -347,7 +333,10 @@ export default function CoordinatorsPage() {
         <Suspense fallback={<SidebarFallback />}>
           <SidebarWithRole />
         </Suspense>
-        <main className="flex-1 p-6">
+        <main
+          className="flex-1 p-6 h-screen overflow-y-auto"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold">Healers</h1>
@@ -361,7 +350,7 @@ export default function CoordinatorsPage() {
                   className="relative"
                   style={
                     activeTab === "requests"
-                      ? { backgroundColor: "#4ead91" }
+                      ? { backgroundColor: "#48c373" }
                       : {}
                   }
                 >
@@ -375,7 +364,7 @@ export default function CoordinatorsPage() {
                   onClick={() => setActiveTab("active")}
                   className="relative"
                   style={
-                    activeTab === "active" ? { backgroundColor: "#4ead91" } : {}
+                    activeTab === "active" ? { backgroundColor: "#48c373" } : {}
                   }
                 >
                   Active
@@ -389,7 +378,7 @@ export default function CoordinatorsPage() {
                   className="relative"
                   style={
                     activeTab === "inactive"
-                      ? { backgroundColor: "#4ead91" }
+                      ? { backgroundColor: "#48c373" }
                       : {}
                   }
                 >
@@ -404,22 +393,15 @@ export default function CoordinatorsPage() {
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search coordinators..."
+                    placeholder="Search healers..."
                     className="pl-8"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Link href="/user-entities/healers/add-healers">
-                  <Button
-                    className="flex items-center gap-2"
-                    style={{ backgroundColor: "#4ead91" }}
-                  >
-                    <Plus className="h-4 w-4" /> Add Healers
-                  </Button>
-                </Link>
               </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEntities.map((entity) => (
                 <EntityCard key={entity.id} entity={entity} />
@@ -429,7 +411,7 @@ export default function CoordinatorsPage() {
             {filteredEntities.length === 0 && (
               <div className="text-center py-10">
                 <p className="text-muted-foreground">
-                  No coordinators found matching your search criteria.
+                  No healers found matching your search criteria.
                 </p>
               </div>
             )}
@@ -438,7 +420,7 @@ export default function CoordinatorsPage() {
               <div className="mt-8 text-center">
                 <Button
                   variant="outline"
-                  style={{ borderColor: "#4ead91", color: "#4ead91" }}
+                  style={{ borderColor: "#48c373", color: "#48c373" }}
                 >
                   Load More
                 </Button>
@@ -447,7 +429,6 @@ export default function CoordinatorsPage() {
           </div>
         </main>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Header } from "@/components/dashboard/header"
-import { Footer } from "@/components/dashboard/footer"
+
 
 export default function RootLayout({
   children,
@@ -15,7 +15,6 @@ export default function RootLayout({
           {children}
         </main>
       </div>
-      <Footer />
     </div>
   )
 }

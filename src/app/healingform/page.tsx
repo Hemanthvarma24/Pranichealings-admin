@@ -19,8 +19,6 @@ type FormDataType = {
 }
 
 export default function ChakraHealingForm() {
-  
-
   // Define all chakra areas
   const majorChakras = [
     "Basic",
@@ -89,10 +87,10 @@ export default function ChakraHealingForm() {
   }
 
   // Create a dropdown field component
-  const DropdownField = ({ areaName, field, value }: { areaName: string, field: keyof AreaData, value: string }) => (
+  const DropdownField = ({ areaName, field, value }: { areaName: string; field: keyof AreaData; value: string }) => (
     <div className="relative w-full h-full">
       <select
-        className="w-full h-full bg-blue-100 cursor-pointer px-2 py-1 appearance-none"
+        className="w-full h-full  cursor-pointer px-2 py-1 appearance-none"
         value={value}
         onChange={(e) => handleFieldChange(areaName, field, e.target.value)}
       >
@@ -111,19 +109,29 @@ export default function ChakraHealingForm() {
     </div>
   )
 
-  // Create a text area field component
-  const TextAreaField = ({ areaName, field, value }: { areaName: string, field: keyof AreaData, value: string }) => (
-    <textarea
-      className="w-full h-full bg-blue-100 px-2 py-1 resize-none"
-      value={value}
-      onChange={(e) => handleFieldChange(areaName, field, e.target.value)}
-      rows={1}
-    />
-  )
-
   return (
     <div className="bg-white p-4 max-w-7xl mx-auto">
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 relative">
+        <button
+          className="absolute left-0 top-0 flex items-center text-purple-700 hover:text-purple-900"
+          onClick={() => window.history.back()}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-1"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Back
+        </button>
         <h1 className="text-2xl font-bold text-purple-700">SCANNING RESULTS - BEFORE & AFTER HEALING</h1>
       </div>
 
@@ -192,69 +200,93 @@ export default function ChakraHealingForm() {
             </tr>
             {majorChakras.map((chakra, index) => (
               <tr key={`major-${index}`}>
-                <td className="p-2 bg-blue-100 border-b border-r border-gray-300">{chakra}</td>
+                <td className="p-2 bg-white border-b border-r border-gray-300">{chakra}</td>
                 {/* Before Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="beforeEnergyInnerAura1" 
-                    value={formData[chakra]?.beforeEnergyInnerAura1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="beforeEnergyInnerAura1"
+                    value={formData[chakra]?.beforeEnergyInnerAura1 || ""}
                   />
                 </td>
                 {/* Before Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="beforeEnergyInnerAura2" 
-                    value={formData[chakra]?.beforeEnergyInnerAura2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.beforeEnergyInnerAura2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "beforeEnergyInnerAura2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="afterEnergyInnerAura1" 
-                    value={formData[chakra]?.afterEnergyInnerAura1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="afterEnergyInnerAura1"
+                    value={formData[chakra]?.afterEnergyInnerAura1 || ""}
                   />
                 </td>
                 {/* After Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="afterEnergyInnerAura2" 
-                    value={formData[chakra]?.afterEnergyInnerAura2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.afterEnergyInnerAura2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "afterEnergyInnerAura2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* Before Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="beforeActivationNormalSize1" 
-                    value={formData[chakra]?.beforeActivationNormalSize1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="beforeActivationNormalSize1"
+                    value={formData[chakra]?.beforeActivationNormalSize1 || ""}
                   />
                 </td>
                 {/* Before Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="beforeActivationNormalSize2" 
-                    value={formData[chakra]?.beforeActivationNormalSize2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.beforeActivationNormalSize2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "beforeActivationNormalSize2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="afterActivationNormalSize1" 
-                    value={formData[chakra]?.afterActivationNormalSize1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="afterActivationNormalSize1"
+                    value={formData[chakra]?.afterActivationNormalSize1 || ""}
                   />
                 </td>
                 {/* After Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="afterActivationNormalSize2" 
-                    value={formData[chakra]?.afterActivationNormalSize2 || ""} 
+                <td className="bg-white border-b border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.afterActivationNormalSize2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "afterActivationNormalSize2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
               </tr>
@@ -270,69 +302,93 @@ export default function ChakraHealingForm() {
             </tr>
             {minorChakras.map((chakra, index) => (
               <tr key={`minor-${index}`}>
-                <td className="p-2 bg-blue-100 border-b border-r border-gray-300">{chakra}</td>
+                <td className="p-2 bg-white border-b border-r border-gray-300">{chakra}</td>
                 {/* Before Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="beforeEnergyInnerAura1" 
-                    value={formData[chakra]?.beforeEnergyInnerAura1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="beforeEnergyInnerAura1"
+                    value={formData[chakra]?.beforeEnergyInnerAura1 || ""}
                   />
                 </td>
                 {/* Before Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="beforeEnergyInnerAura2" 
-                    value={formData[chakra]?.beforeEnergyInnerAura2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.beforeEnergyInnerAura2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "beforeEnergyInnerAura2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="afterEnergyInnerAura1" 
-                    value={formData[chakra]?.afterEnergyInnerAura1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="afterEnergyInnerAura1"
+                    value={formData[chakra]?.afterEnergyInnerAura1 || ""}
                   />
                 </td>
                 {/* After Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="afterEnergyInnerAura2" 
-                    value={formData[chakra]?.afterEnergyInnerAura2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.afterEnergyInnerAura2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "afterEnergyInnerAura2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* Before Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="beforeActivationNormalSize1" 
-                    value={formData[chakra]?.beforeActivationNormalSize1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="beforeActivationNormalSize1"
+                    value={formData[chakra]?.beforeActivationNormalSize1 || ""}
                   />
                 </td>
                 {/* Before Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="beforeActivationNormalSize2" 
-                    value={formData[chakra]?.beforeActivationNormalSize2 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.beforeActivationNormalSize2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "beforeActivationNormalSize2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <DropdownField 
-                    areaName={chakra} 
-                    field="afterActivationNormalSize1" 
-                    value={formData[chakra]?.afterActivationNormalSize1 || ""} 
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <DropdownField
+                    areaName={chakra}
+                    field="afterActivationNormalSize1"
+                    value={formData[chakra]?.afterActivationNormalSize1 || ""}
                   />
                 </td>
                 {/* After Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-gray-300 p-0">
-                  <TextAreaField 
-                    areaName={chakra} 
-                    field="afterActivationNormalSize2" 
-                    value={formData[chakra]?.afterActivationNormalSize2 || ""} 
+                <td className="bg-white border-b border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    value={formData[chakra]?.afterActivationNormalSize2 || ""}
+                    onChange={(e) => handleFieldChange(chakra, "afterActivationNormalSize2", e.target.value)}
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
               </tr>
@@ -348,17 +404,13 @@ export default function ChakraHealingForm() {
             </tr>
             {minorChakrasOrgans.map((_, index) => (
               <tr key={`organ-${index}`}>
-                <td className="p-2 bg-blue-100 border-b border-r border-gray-300">
-                  <input 
-                    type="text" 
-                    className="w-full bg-blue-100 border-none" 
-                    placeholder="Organ name"
-                  />
+                <td className="p-2 bg-white border-b border-r border-gray-300">
+                  <input type="text" className="w-full bg-white border-none" placeholder="Organ name" />
                 </td>
                 {/* Before Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
+                <td className="bg-white border-b border-r border-gray-300 p-0">
                   <div className="relative w-full h-full">
-                    <select className="w-full h-full bg-blue-100 cursor-pointer px-2 py-1 appearance-none">
+                    <select className="w-full h-full bg-white cursor-pointer px-2 py-1 appearance-none">
                       <option value=""></option>
                       {Array.from({ length: 11 }, (_, i) => (
                         <option key={i} value={i.toString()}>
@@ -374,16 +426,21 @@ export default function ChakraHealingForm() {
                   </div>
                 </td>
                 {/* Before Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <textarea 
-                    className="w-full h-full bg-blue-100 px-2 py-1 resize-none" 
-                    rows={1}
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Energy - Inner Aura 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
+                <td className="bg-white border-b border-r border-gray-300 p-0">
                   <div className="relative w-full h-full">
-                    <select className="w-full h-full bg-blue-100 cursor-pointer px-2 py-1 appearance-none">
+                    <select className="w-full h-full bg-white cursor-pointer px-2 py-1 appearance-none">
                       <option value=""></option>
                       {Array.from({ length: 11 }, (_, i) => (
                         <option key={i} value={i.toString()}>
@@ -399,16 +456,21 @@ export default function ChakraHealingForm() {
                   </div>
                 </td>
                 {/* After Energy - Inner Aura 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <textarea 
-                    className="w-full h-full bg-blue-100 px-2 py-1 resize-none" 
-                    rows={1}
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* Before Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
+                <td className="bg-white border-b border-r border-gray-300 p-0">
                   <div className="relative w-full h-full">
-                    <select className="w-full h-full bg-blue-100 cursor-pointer px-2 py-1 appearance-none">
+                    <select className="w-full h-full bg-white cursor-pointer px-2 py-1 appearance-none">
                       <option value=""></option>
                       {Array.from({ length: 11 }, (_, i) => (
                         <option key={i} value={i.toString()}>
@@ -424,16 +486,21 @@ export default function ChakraHealingForm() {
                   </div>
                 </td>
                 {/* Before Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
-                  <textarea 
-                    className="w-full h-full bg-blue-100 px-2 py-1 resize-none" 
-                    rows={1}
+                <td className="bg-white border-b border-r border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
                 {/* After Activation - Normal Size 1 - Dropdown */}
-                <td className="bg-blue-100 border-b border-r border-gray-300 p-0">
+                <td className="bg-white border-b border-r border-gray-300 p-0">
                   <div className="relative w-full h-full">
-                    <select className="w-full h-full bg-blue-100 cursor-pointer px-2 py-1 appearance-none">
+                    <select className="w-full h-full bg-white cursor-pointer px-2 py-1 appearance-none">
                       <option value=""></option>
                       {Array.from({ length: 11 }, (_, i) => (
                         <option key={i} value={i.toString()}>
@@ -449,10 +516,15 @@ export default function ChakraHealingForm() {
                   </div>
                 </td>
                 {/* After Activation - Normal Size 2 - Text Area */}
-                <td className="bg-blue-100 border-b border-gray-300 p-0">
-                  <textarea 
-                    className="w-full h-full bg-blue-100 px-2 py-1 resize-none" 
-                    rows={1}
+                <td className="bg-white border-b border-gray-300 p-0">
+                  <textarea
+                    className="w-full h-full bg-white px-2 py-1 resize-none"
+                    style={{ minHeight: "30px", overflow: "hidden" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement
+                      target.style.height = "auto"
+                      target.style.height = `${target.scrollHeight}px`
+                    }}
                   />
                 </td>
               </tr>

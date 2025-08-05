@@ -1,150 +1,101 @@
-"use client";
+"use client"
 
-import { useState, Suspense } from "react";
-import Image from "next/image";
-import {
-  Search,
-  Calendar,
-  MapPin,
-  Plus,
-  Check,
-  Clock,
-  Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Header } from "@/components/dashboard/header";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { Footer } from "@/components/dashboard/footer";
-
-import { Badge } from "@/components/ui/badge";
+import { useState, Suspense } from "react"
+import Image from "next/image"
+import { Search, Calendar, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { Header } from "@/components/dashboard/header"
+import { Sidebar } from "@/components/dashboard/sidebar"
+import Link from "next/link"
 
 // Import patient images
-import Patient from "@/app/assets/patients/patient.jpg";
-import Patienttwo from "@/app/assets/patients/patient2.jpg";
-import Patientthree from "@/app/assets/patients/patient3.jpg";
-import Patientfour from "@/app/assets/patients/patient4.jpg";
-import Patientfive from "@/app/assets/patients/patient5.jpg";
-import Patientsix from "@/app/assets/patients/patient6.jpg";
-import Link from "next/link";
+import Patient from "@/app/assets/patients/patient.jpg"
+import Patienttwo from "@/app/assets/patients/patient2.jpg"
+import Patientthree from "@/app/assets/patients/patient3.jpg"
+import Patientfour from "@/app/assets/patients/patient4.jpg"
+import Patientfive from "@/app/assets/patients/patient5.jpg"
+import Patientsix from "@/app/assets/patients/patient6.jpg"
 
 type Entity = {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  bloodType: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  location: string;
-  lastBooking: string;
-  image: string | { src: string };
-  status?: "pending" | "processing" | "completed";
-};
+  id: string
+  name: string
+  age: number
+  gender: string
+  bloodType: string
+  appointmentDate: string
+  appointmentTime: string
+  location: string
+  lastBooking: string
+  image: string | { src: string }
+  tabType?: "requests" | "active" | "inactive"
+}
 
-// EntityCard component
-const EntityCard = ({ entity }: { entity: Entity }) => {
-  const getStatusBadge = () => {
-    if (!entity.status) return null;
-
-    switch (entity.status) {
-      case "completed":
-        return (
-          <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
-            <Check className="h-3 w-3" /> Completed
-          </Badge>
-        );
-      case "processing":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 flex items-center gap-1">
-            <Loader2 className="h-3 w-3 animate-spin" /> Processing
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
-            <Clock className="h-3 w-3" /> Pending
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
+// EntityCard component - removed status badge
+const EntityCard = ({ entity, activeTab }: { entity: Entity; activeTab: string }) => {
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="relative h-16 w-16 flex-shrink-0">
-            <Image
-              src={
-                typeof entity.image === "string"
-                  ? entity.image
-                  : entity.image.src
-              }
-              alt={entity.name}
-              fill
-              className="rounded-lg object-cover"
-              unoptimized
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-blue-600">#{entity.id}</p>
-                <h3 className="font-semibold truncate">{entity.name}</h3>
+    <Link href={`patients/patient-details?id=${entity.id}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="relative h-16 w-16 flex-shrink-0">
+              <Image
+                src={typeof entity.image === "string" ? entity.image : entity.image.src}
+                alt={entity.name}
+                fill
+                className="rounded-lg object-cover"
+                unoptimized
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-blue-600">#{entity.id}</p>
+                  <h3 className="font-semibold truncate">{entity.name}</h3>
+                </div>
               </div>
-              <div className="min-w-[100px] flex justify-end">
-                {entity.status && getStatusBadge()}
+              <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
+                <span>Age: {entity.age}</span>
+                <span>•</span>
+                <span>{entity.gender}</span>
+                <span>•</span>
+                <span>{entity.bloodType}</span>
               </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
-              <span>Age: {entity.age}</span>
-              <span>•</span>
-              <span>{entity.gender}</span>
-              <span>•</span>
-              <span>{entity.bloodType}</span>
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Calendar className="h-4 w-4" />
+              <span>{entity.appointmentDate}</span>
+              <span>{entity.appointmentTime}</span>
             </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <MapPin className="h-4 w-4" />
+              <span>{entity.location}</span>
+            </div>
+            <div className="text-sm text-gray-600">Last Booking: {entity.lastBooking}</div>
           </div>
-        </div>
-
-        <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="h-4 w-4" />
-            <span>{entity.appointmentDate}</span>
-            <span>{entity.appointmentTime}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="h-4 w-4" />
-            <span>{entity.location}</span>
-          </div>
-          <div className="text-sm text-gray-600">
-            Last Booking: {entity.lastBooking}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
 
 // Component that uses useSearchParams wrapped in its own component
 function SidebarWithRole() {
-  return <Sidebar/>;
+  return <Sidebar />
 }
 
 // Fallback component to show while loading
 function SidebarFallback() {
-  return <div className="w-64 bg-gray-100 animate-pulse h-screen"></div>;
+  return <div className="w-64 bg-gray-100 animate-pulse h-screen"></div>
 }
 
 // Main page component
-export default function CoordinatorsPage() {
-  const [activeTab, setActiveTab] = useState<
-    "requests" | "active" | "inactive"
-  >("requests");
-  const [] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+export default function patientsPage() {
+  const [activeTab, setActiveTab] = useState<"requests" | "active" | "inactive">("requests")
+  const [searchQuery, setSearchQuery] = useState("")
 
   const requests: Entity[] = [
     {
@@ -158,7 +109,6 @@ export default function CoordinatorsPage() {
       location: "San Diego, USA",
       lastBooking: "20 Mar 2023",
       image: Patient,
-      status: "pending",
     },
     {
       id: "Apt0002",
@@ -171,7 +121,6 @@ export default function CoordinatorsPage() {
       location: "Las Vegas, USA",
       lastBooking: "25 Apr 2023",
       image: Patienttwo,
-      status: "processing",
     },
     {
       id: "Apt0003",
@@ -184,7 +133,6 @@ export default function CoordinatorsPage() {
       location: "Phoenix, USA",
       lastBooking: "30 May 2023",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0004",
@@ -197,9 +145,8 @@ export default function CoordinatorsPage() {
       location: "Dallas, USA",
       lastBooking: "05 Jun 2023",
       image: Patientfour,
-      status: "pending",
     },
-  ];
+  ]
 
   const activePatients: Entity[] = [
     {
@@ -213,7 +160,6 @@ export default function CoordinatorsPage() {
       location: "San Francisco, USA",
       lastBooking: "11 Feb 2024",
       image: Patient,
-      status: "completed",
     },
     {
       id: "Apt0006",
@@ -226,7 +172,6 @@ export default function CoordinatorsPage() {
       location: "San Antonio, USA",
       lastBooking: "03 Jan 2024",
       image: Patienttwo,
-      status: "processing",
     },
     {
       id: "Apt0007",
@@ -239,7 +184,6 @@ export default function CoordinatorsPage() {
       location: "Los Angeles, USA",
       lastBooking: "27 Feb 2024",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0008",
@@ -252,7 +196,6 @@ export default function CoordinatorsPage() {
       location: "Seattle, USA",
       lastBooking: "05 Mar 2024",
       image: Patientfour,
-      status: "processing",
     },
     {
       id: "Apt0009",
@@ -265,7 +208,6 @@ export default function CoordinatorsPage() {
       location: "Chicago, USA",
       lastBooking: "14 Apr 2024",
       image: Patientfive,
-      status: "completed",
     },
     {
       id: "Apt0010",
@@ -278,9 +220,8 @@ export default function CoordinatorsPage() {
       location: "Boston, USA",
       lastBooking: "18 May 2024",
       image: Patientsix,
-      status: "pending",
     },
-  ];
+  ]
 
   const inactivePatients: Entity[] = [
     {
@@ -294,7 +235,6 @@ export default function CoordinatorsPage() {
       location: "New York, USA",
       lastBooking: "15 Jun 2023",
       image: Patientthree,
-      status: "completed",
     },
     {
       id: "Apt0012",
@@ -307,7 +247,6 @@ export default function CoordinatorsPage() {
       location: "Denver, USA",
       lastBooking: "22 Jul 2023",
       image: Patientfour,
-      status: "pending",
     },
     {
       id: "Apt0013",
@@ -320,25 +259,18 @@ export default function CoordinatorsPage() {
       location: "Miami, USA",
       lastBooking: "08 Aug 2023",
       image: Patient,
-      status: "processing",
     },
-  ];
+  ]
 
-  const entities =
-    activeTab === "requests"
-      ? requests
-      : activeTab === "active"
-      ? activePatients
-      : inactivePatients;
+  const entities = activeTab === "requests" ? requests : activeTab === "active" ? activePatients : inactivePatients
 
   // Filter entities based on search query
   const filteredEntities = entities.filter(
     (entity) =>
       entity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entity.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entity.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+      entity.location.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -347,99 +279,76 @@ export default function CoordinatorsPage() {
         <Suspense fallback={<SidebarFallback />}>
           <SidebarWithRole />
         </Suspense>
-        <main className="flex-1 p-6">
+        <main
+          className="flex-1 p-6 h-screen overflow-y-auto"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold">Patients</h1>
             </div>
-
             <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-  <div className="flex gap-2">
-    <Button
-      variant={activeTab === "requests" ? "default" : "outline"}
-      onClick={() => setActiveTab("requests")}
-      className="relative"
-      style={
-        activeTab === "requests"
-          ? { backgroundColor: "#4ead91" }
-          : {}
-      }
-    >
-      Requests
-      <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
-        {requests.length}
-      </span>
-    </Button>
-    <Button
-      variant={activeTab === "active" ? "default" : "outline"}
-      onClick={() => setActiveTab("active")}
-      className="relative"
-      style={
-        activeTab === "active" ? { backgroundColor: "#4ead91" } : {}
-      }
-    >
-      Active
-      <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
-        {activePatients.length}
-      </span>
-    </Button>
-    <Button
-      variant={activeTab === "inactive" ? "default" : "outline"}
-      onClick={() => setActiveTab("inactive")}
-      className="relative"
-      style={
-        activeTab === "inactive"
-          ? { backgroundColor: "#4ead91" }
-          : {}
-      }
-    >
-      Inactive
-      <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
-        {inactivePatients.length}
-      </span>
-    </Button>
-  </div>
-  <div className="flex items-center gap-0">
-    <div className="relative w-full sm:w-64 mr-2">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="Search coordinators..."
-        className="pl-8"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-    </div>
-    <Link href="/user-entities/patients/add-patients">
-      <Button
-        className="flex items-center gap-2"
-        style={{ backgroundColor: "#4ead91" }}
-      >
-        <Plus className="h-4 w-4" /> Add Patients
-      </Button>
-    </Link>
-  </div>
-</div>
+              <div className="flex gap-2">
+                <Button
+                  variant={activeTab === "requests" ? "default" : "outline"}
+                  onClick={() => setActiveTab("requests")}
+                  className="relative transition-all duration-300"
+                  style={activeTab === "requests" ? { backgroundColor: "#48c373" } : {}}
+                >
+                  Requests
+                  <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
+                    {requests.length}
+                  </span>
+                </Button>
+                <Button
+                  variant={activeTab === "active" ? "default" : "outline"}
+                  onClick={() => setActiveTab("active")}
+                  className="relative transition-all duration-300"
+                  style={activeTab === "active" ? { backgroundColor: "#48c373" } : {}}
+                >
+                  Active
+                  <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
+                    {activePatients.length}
+                  </span>
+                </Button>
+                <Button
+                  variant={activeTab === "inactive" ? "default" : "outline"}
+                  onClick={() => setActiveTab("inactive")}
+                  className="relative transition-all duration-300"
+                  style={activeTab === "inactive" ? { backgroundColor: "#48c373" } : {}}
+                >
+                  Inactive
+                  <span className="ml-2 bg-primary-foreground text-primary px-2 py-0.5 rounded-full text-xs">
+                    {inactivePatients.length}
+                  </span>
+                </Button>
+              </div>
+              <div className="flex items-center gap-0">
+                <div className="relative w-full sm:w-64 mr-2">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search patients..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEntities.map((entity) => (
-                <EntityCard key={entity.id} entity={entity} />
+                <EntityCard key={entity.id} entity={entity} activeTab={activeTab} />
               ))}
             </div>
-
             {filteredEntities.length === 0 && (
               <div className="text-center py-10">
-                <p className="text-muted-foreground">
-                  No coordinators found matching your search criteria.
-                </p>
+                <p className="text-muted-foreground">No patients found matching your search criteria.</p>
               </div>
             )}
-
             {filteredEntities.length > 0 && (
               <div className="mt-8 text-center">
-                <Button
-                  variant="outline"
-                  style={{ borderColor: "#4ead91", color: "#4ead91" }}
-                >
+                <Button variant="outline" style={{ borderColor: "#48c373", color: "#48c373" }}>
                   Load More
                 </Button>
               </div>
@@ -447,7 +356,6 @@ export default function CoordinatorsPage() {
           </div>
         </main>
       </div>
-      <Footer />
     </div>
-  );
+  )
 }

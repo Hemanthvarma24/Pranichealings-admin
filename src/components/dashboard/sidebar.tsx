@@ -19,7 +19,7 @@ import {
   LogOut,
 } from "lucide-react";
 import user from "@/app/assets/patients/patient2.jpg";
-import bg from "@/app/assets/bgside.png";
+import bg from "@/app/assets/bgside (1).png";
 
 type SubmenuItem = {
   label: string;
@@ -46,38 +46,30 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
   const searchParams = useSearchParams();
   const [currentRole, setCurrentRole] = useState<UserRole>(defaultRole);
 
-  // Get role from URL or localStorage on component mount
   useEffect(() => {
     const roleFromUrl = searchParams.get("role") as UserRole | null;
     const roleFromStorage = localStorage.getItem("userRole") as UserRole | null;
-
-    // Prioritize URL parameter, then localStorage
     const role = roleFromUrl || roleFromStorage || defaultRole;
 
-    // Validate role is one of the allowed values
     if (["admin", "coordinators", "healers"].includes(role)) {
       setCurrentRole(role as UserRole);
-
-      // Store current role in localStorage if it came from URL
       if (roleFromUrl && roleFromUrl !== roleFromStorage) {
         localStorage.setItem("userRole", role);
       }
     } else {
-      setCurrentRole(defaultRole); // Default fallback
+      setCurrentRole(defaultRole);
     }
   }, [searchParams, defaultRole]);
 
-  // Define all possible menu items without role query parameters
   const allMenuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     {
       icon: ClipboardList,
-      label: "Diseases",
-      href: "/diseases",
+      label: "Treatments",
       submenu: [
-        { label: "Category", href: "/diseases/category" },
-        { label: "Treatments", href: "/diseases/treatments" },
-        { label: "Symptoms", href: "/diseases/symptoms" },
+        { label: "Category", href: "/treatments/category" },
+        { label: "Diseases", href: "/treatments/diseases" },
+        { label: "Symptoms", href: "/treatments/symptoms" },
       ],
     },
     { icon: Calendar, label: "Centres", href: "/centres" },
@@ -98,15 +90,17 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
       icon: Settings,
       label: "Settings",
       href: "/settings",
-      submenu: [{ label: "Info", href: "/settings/info" }],
+      submenu: [
+        { label: "Blogs", href: "/settings/blogs" },
+        { label: "Courses", href: "/settings/courses" },
+      ],
     },
   ];
 
-  // Define role-based access permissions
   const roleBasedAccess: Record<UserRole, string[]> = {
     admin: [
       "Dashboard",
-      "Diseases",
+      "Treatments",
       "Centres",
       "User Entities",
       "Healings",
@@ -118,49 +112,35 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
     healers: ["Dashboard", "Healings", "Payouts", "Reports", "Settings"],
   };
 
-  // Define role-based submenu access
   const roleBasedSubmenuAccess: Record<UserRole, Record<string, string[]>> = {
     admin: {
-      Diseases: ["Category", "Treatments", "Symptoms"],
+      Treatments: ["Category", "Diseases", "Symptoms"],
       "User Entities": ["Coordinator", "Healers", "Patients"],
-      Settings: ["Info"],
+      Settings: ["Blogs", "Courses", "Info"],
     },
     coordinators: {
-      Settings: ["Info"],
+      Settings: ["Blogs", "Courses", "Info"],
     },
     healers: {
-      Settings: ["Info"],
+      Settings: ["Blogs", "Courses", "Info"],
     },
   };
 
-  // Generate the accessible menu items based on role
   const accessibleMenuItems = useMemo(() => {
     return allMenuItems
       .filter((item) => roleBasedAccess[currentRole]?.includes(item.label))
       .map((item) => {
-        // Create a base item with the role parameter added to href
         const baseItem = {
           ...item,
           href: item.href ? `${item.href}?role=${currentRole}` : undefined,
         };
 
-        // If item has submenu, filter it based on role permissions
-        if (item.submenu) {
+        if (Array.isArray(item.submenu)) {
           const allowedSubmenus =
             roleBasedSubmenuAccess[currentRole]?.[item.label] || [];
 
-          // Filter submenus based on current role permissions
           const filteredSubmenu = item.submenu
-            .filter((subitem) => {
-              if (currentRole === "admin" && item.label === "User Entities") {
-                return true;
-              }
-              // Include Symptoms menu for admin
-              if (currentRole === "admin" && item.label === "Diseases") {
-                return true;
-              }
-              return allowedSubmenus.includes(subitem.label);
-            })
+            .filter((subitem) => allowedSubmenus.includes(subitem.label))
             .map((subitem) => ({
               ...subitem,
               href: `${subitem.href}?role=${currentRole}`,
@@ -178,41 +158,21 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
 
   const isMenuActive = useMemo(() => {
     return (item: MenuItem): boolean => {
-      // Get base path without query parameters
       const currentPath = pathname.split("?")[0];
-
-      // For main menu items with direct href
       if (item.href && !item.submenu) {
         const baseHref = item.href.split("?")[0];
-        return (
-          currentPath === baseHref || currentPath.startsWith(baseHref + "/")
-        );
+        return currentPath === baseHref || currentPath.startsWith(baseHref + "/");
       }
-
-      // For items with submenus
-      if (item.submenu) {
-        const baseItemHref = item.href?.split("?")[0];
-
-        // Check if current path matches the main menu path exactly
-        if (baseItemHref && currentPath === baseItemHref) {
-          return true;
-        }
-
-        // Check if current path matches any submenu path
+      if (Array.isArray(item.submenu)) {
         return item.submenu.some((subitem) => {
           const baseSubHref = subitem.href.split("?")[0];
-          return (
-            currentPath === baseSubHref ||
-            currentPath.startsWith(baseSubHref + "/")
-          );
+          return currentPath === baseSubHref || currentPath.startsWith(baseSubHref + "/");
         });
       }
-
       return false;
     };
   }, [pathname]);
 
-  // Check if a submenu item is active
   const isSubmenuActive = useMemo(() => {
     return (href: string): boolean => {
       const currentPath = pathname.split("?")[0];
@@ -221,72 +181,47 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
     };
   }, [pathname]);
 
-  // Update open menus based on current pathname
   useEffect(() => {
-    // Get active menu items based on current path
     const currentPath = pathname.split("?")[0];
-
     const currentActiveMenus = accessibleMenuItems
-      .filter((item) => {
-        if (item.submenu) {
-          return item.submenu.some((subitem) => {
-            const baseSubHref = subitem.href.split("?")[0];
-            return (
-              currentPath === baseSubHref ||
-              currentPath.startsWith(baseSubHref + "/")
-            );
-          });
-        }
-        return false;
-      })
+      .filter((item) =>
+        item.submenu?.some((subitem) => {
+          const baseSubHref = subitem.href.split("?")[0];
+          return currentPath === baseSubHref || currentPath.startsWith(baseSubHref + "/");
+        })
+      )
       .map((item) => item.label);
-
     setOpenMenus(currentActiveMenus);
   }, [pathname, accessibleMenuItems]);
 
-  // Toggle menu expansion
   const handleMenuToggle = (label: string) => {
-    setOpenMenus((prev) => {
-      if (prev.includes(label)) {
-        return prev.filter((item) => item !== label);
-      } else {
-        return [...prev, label];
-      }
-    });
+    setOpenMenus((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
   };
 
-  // Handle menu item click - toggle menu or navigate
   const handleMenuClick = (item: MenuItem) => {
-    if (item.submenu) {
+    if (Array.isArray(item.submenu)) {
       handleMenuToggle(item.label);
     } else if (item.href) {
       router.push(item.href);
     }
   };
 
-  // Handle submenu item click with explicit role enforcement
-  const handleSubmenuClick = (href: string, event: React.MouseEvent) => {
-    event.preventDefault();
-
-    // Ensure the role parameter is included and matches current role
-    const baseUrl = href.split("?")[0];
-    const navigateUrl = `${baseUrl}?role=${currentRole}`;
-
-    router.push(navigateUrl);
+  const handleSubmenuClick = (href: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    const base = href.split("?")[0];
+    router.push(`${base}?role=${currentRole}`);
   };
 
-  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("userRole");
     router.push("/");
   };
 
-  // Handle role switch attempt (block unauthorized switches)
   useEffect(() => {
     const roleFromUrl = searchParams.get("role") as UserRole | null;
     const storedRole = localStorage.getItem("userRole") as UserRole | null;
-
-    // If URL role doesn't match stored role and stored role exists, redirect to correct role path
     if (roleFromUrl && storedRole && roleFromUrl !== storedRole) {
       const currentPath = pathname.split("?")[0];
       router.replace(`${currentPath}?role=${storedRole}`);
@@ -296,8 +231,7 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
   return (
     <div className="w-full max-w-[300px] bg-white rounded-[20px] overflow-hidden shadow-lg">
       <div className="relative">
-        <div className="h-[150px] relative ">
-          {/* Background Image */}
+        <div className="h-[150px] relative">
           <Image
             src={bg}
             alt="Background"
@@ -307,16 +241,9 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
             className="z-0"
           />
         </div>
-
         <div className="absolute bottom-[-48px] left-1/2 transform -translate-x-1/2">
           <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden shadow-md bg-gray-200">
-            <Image
-              src={user}
-              alt="User profile"
-              width={96}
-              height={96}
-              className="object-cover"
-            />
+            <Image src={user} alt="User profile" width={96} height={96} className="object-cover" />
           </div>
         </div>
       </div>
@@ -340,57 +267,63 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
 
             return (
               <div key={item.label} className="mb-1">
-                {/* Main Menu Item */}
                 <Button
                   onClick={() => handleMenuClick(item)}
                   variant="ghost"
-                  className={`w-full justify-between h-10 px-4 rounded-lg transition-colors duration-200 ${
-                    isActive ? "bg-[#4ead91] text-white" : ""
-                  } hover:bg-gray-100 hover:text-black`}
+                  className={`group w-full justify-between h-10 px-4 rounded-lg transition-all duration-300 ease-in-out
+                    ${isActive ? "bg-[#48c373] text-white font-semibold" : "text-gray-400"}
+                    hover:bg-transparent hover:text-[#48c373]`}
                 >
-                  <span className="flex items-center">
+                  <span className="flex items-center transition-all duration-300 ease-in-out group-hover:text-[#48c373]">
                     <item.icon
-                      className={`mr-3 h-4 w-4 ${
-                        isActive ? "text-white" : "text-gray-500"
-                      }`}
+                      className={`mr-3 h-5 w-5 transition-all duration-300 ease-in-out 
+                        ${isActive ? "text-white" : "text-gray-400"} 
+                        group-hover:text-[#48c373]`}
                     />
                     {item.label}
                   </span>
-                  {item.submenu && item.submenu.length > 0 && (
-                    <span className="ml-auto">
+                  {Array.isArray(item.submenu) && item.submenu.length > 0 && (
+                    <span className="ml-auto transition-all duration-300 ease-in-out">
                       {isOpen ? (
                         <ChevronUp
-                          className={`h-4 w-4 ${
-                            isActive ? "text-white" : "text-gray-500"
-                          }`}
+                          className={`h-4 w-4 transition-all duration-300 ease-in-out ${
+                            isActive ? "text-white" : "text-gray-400"
+                          } group-hover:text-[#48c373]`}
                         />
                       ) : (
                         <ChevronDown
-                          className={`h-4 w-4 ${
-                            isActive ? "text-white" : "text-gray-500"
-                          }`}
+                          className={`h-4 w-4 transition-all duration-300 ease-in-out ${
+                            isActive ? "text-white" : "text-gray-400"
+                          } group-hover:text-[#48c373]`}
                         />
                       )}
                     </span>
                   )}
                 </Button>
 
-                {/* Submenu Items */}
-                {item.submenu && item.submenu.length > 0 && isOpen && (
+                {isOpen && Array.isArray(item.submenu) && item.submenu.length > 0 && (
                   <div className="pl-10 py-1 space-y-1">
                     {item.submenu.map((subitem) => {
                       const isSubActive = isSubmenuActive(subitem.href);
+                      const isLargeText =
+                        subitem.label === "Coordinator" || subitem.label === "Healers";
 
                       return (
                         <Button
                           key={subitem.label}
                           onClick={(e) => handleSubmenuClick(subitem.href, e)}
                           variant="ghost"
-                          className={`w-full justify-start h-9 px-3 rounded-lg transition-colors duration-200 ${
-                            isSubActive ? "bg-[#4ead91] text-white" : ""
-                          } hover:bg-gray-100 hover:text-black`}
+                          className={`group w-full justify-start h-9 px-3 rounded-lg transition-all duration-300 ease-in-out
+                            ${isSubActive ? "bg-[#48c373] text-white font-semibold" : "text-gray-400"}
+                            hover:bg-transparent hover:text-[#48c373]`}
                         >
-                          {subitem.label}
+                          <span
+                            className={`transition-all duration-300 ease-in-out group-hover:text-[#48c373] ${
+                              isLargeText ? "text-md font-semibold" : ""
+                            }`}
+                          >
+                            {subitem.label}
+                          </span>
                         </Button>
                       );
                     })}
@@ -400,7 +333,6 @@ export function Sidebar({ defaultRole = "admin" }: SidebarProps) {
             );
           })}
 
-          {/* Logout Button */}
           <Button
             onClick={handleLogout}
             variant="ghost"
